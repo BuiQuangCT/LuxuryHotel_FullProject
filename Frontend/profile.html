@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ cá nhân - Luxury Hotel</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; color: #333; }
+        header { background-color: #2c3e50; color: white; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; color: #d4af37; cursor: pointer; }
+        
+        .container { max-width: 600px; margin: 50px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 30px; border-bottom: 2px solid #d4af37; padding-bottom: 10px; display: inline-block; }
+        
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #7f8c8d; font-size: 14px; }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; outline: none; }
+        .input-group input:disabled { background-color: #f9f9f9; cursor: not-allowed; color: #95a5a6; }
+        .input-group input:focus { border-color: #d4af37; }
+        
+        .btn-container { display: flex; gap: 15px; margin-top: 30px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 16px; }
+        .btn-save { background: #d4af37; color: white; }
+        .btn-save:hover { background: #b5952f; }
+        .btn-home { background: #95a5a6; color: white; text-align: center; text-decoration: none; padding-top: 12px; }
+        .btn-home:hover { background: #7f8c8d; }
+        
+        #msgBox { text-align: center; margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo" onclick="window.location.href='index.html'">LUXURY HOTEL</div>
+    </header>
+
+    <div class="container">
+        <center><h2>HỒ SƠ CỦA TÔI</h2></center>
+        <form id="profileForm">
+            <div class="input-group">
+                <label>Email (Tài khoản đăng nhập)</label>
+                <input type="email" id="email" disabled title="Không thể thay đổi Email" />
+            </div>
+            <div class="input-group">
+                <label>Họ và Tên</label>
+                <input type="text" id="hoTen" required />
+            </div>
+            <div class="input-group">
+                <label>Số Điện Thoại</label>
+                <input type="text" id="soDienThoai" required />
+            </div>
+            <div class="input-group">
+                <label>Số CMND / CCCD</label>
+                <input type="text" id="cmnd" required />
+            </div>
+            
+            <div id="msgBox"></div>
+
+            <div class="btn-container">
+                <a href="index.html" class="btn-home">Về Trang Chủ</a>
+                <button type="submit" class="btn-save">LƯU CẬP NHẬT</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const API_URL = "https://localhost:7182/api/KhachHang";
+        const token = localStorage.getItem("hotel_token");
+
+        // Kiểm tra đăng nhập
+        if (!token) {
+            alert("Bạn cần đăng nhập để xem thông tin!");
+            window.location.href = "login.html";
+        }
+
+        const myHeaders = {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+        };
+
+        // 1. Tải thông tin khi mở trang
+        async function loadProfile() {
+            try {
+                const res = await fetch(`${API_URL}/thong-tin`, { headers: myHeaders });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('email').value = data.email;
+                    document.getElementById('hoTen').value = data.hoTen;
+                    document.getElementById('soDienThoai').value = data.soDienThoai;
+                    document.getElementById('cmnd').value = data.cmnd;
+                } else if (res.status === 401) {
+                    alert("Phiên đăng nhập hết hạn!");
+                    localStorage.removeItem("hotel_token");
+                    window.location.href = "login.html";
+                }
+            } catch (err) {
+                console.error("Lỗi:", err);
+            }
+        }
+
+        // 2. Cập nhật thông tin
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msgBox = document.getElementById('msgBox');
+            msgBox.style.color = "#333";
+            msgBox.innerText = "Đang xử lý...";
+
+            const requestData = {
+                hoTen: document.getElementById('hoTen').value,
+                soDienThoai: document.getElementById('soDienThoai').value,
+                cmnd: document.getElementById('cmnd').value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/cap-nhat`, {
+                    method: "PUT",
+                    headers: myHeaders,
+                    body: JSON.stringify(requestData)
+                });
+
+                if (res.ok) {
+                    msgBox.style.color = "#2ecc71";
+                    msgBox.innerText = "Cập nhật hồ sơ thành công!";
+                    // Cập nhật lại tên hiển thị trên navbar nếu cần
+                } else {
+                    msgBox.style.color = "#e74c3c";
+                    msgBox.innerText = "Cập nhật thất bại, vui lòng thử lại!";
+                }
+            } catch (err) {
+                msgBox.style.color = "#e74c3c";
+                msgBox.innerText = "Lỗi kết nối máy chủ!";
+            }
+        });
+
+        loadProfile();
+    </script>
+</body>
+</html>

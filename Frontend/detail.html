@@ -1,0 +1,59 @@
+<div class="container" style="margin-top: 50px">
+  <div id="roomDetail" style="display: flex; gap: 30px">
+    <div style="flex: 2">
+      <img id="mainImg" src="" style="width: 100%; border-radius: 10px" />
+      <div
+        id="thumbList"
+        style="display: flex; gap: 10px; margin-top: 15px"
+      ></div>
+    </div>
+    <div
+      style="
+        flex: 1;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      "
+    >
+      <h2 id="detLoaiPhong" style="color: #2c3e50"></h2>
+      <p id="detKhachSan" style="color: #d4af37; font-weight: bold"></p>
+      <p
+        id="detGia"
+        style="font-size: 24px; color: #e74c3c; margin: 15px 0"
+      ></p>
+      <hr />
+      <h4>Tiện nghi:</h4>
+      <p id="detTienNghi" style="color: #7f8c8d; margin-bottom: 20px"></p>
+      <button class="btn-book" onclick="datPhongDetail()">
+        ĐẶT PHÒNG NGAY
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const maPhong = urlParams.get("id");
+
+  async function loadDetail() {
+    const res = await fetch(`https://localhost:7182/api/Phong/${maPhong}`);
+    const p = await res.json();
+
+    document.getElementById("detLoaiPhong").innerText = p.loaiPhong;
+    document.getElementById("detKhachSan").innerText =
+      p.khachSan.tenKS + " - " + p.khachSan.diaChi;
+    document.getElementById("detGia").innerText =
+      p.gia.toLocaleString() + " VNĐ";
+    document.getElementById("detTienNghi").innerText = p.tienNghi;
+    document.getElementById("mainImg").src = p.danhSachAnh[0] || "";
+
+    let thumbs = "";
+    p.danhSachAnh.forEach(
+      (img) =>
+        (thumbs += `<img src="${img}" style="width: 80px; height: 60px; object-fit: cover; cursor: pointer; border-radius: 5px;" onclick="document.getElementById('mainImg').src='${img}'">`),
+    );
+    document.getElementById("thumbList").innerHTML = thumbs;
+  }
+  loadDetail();
+</script>

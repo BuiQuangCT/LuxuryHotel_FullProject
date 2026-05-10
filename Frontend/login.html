@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - Luxury Hotel</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      body {
+        background:
+          linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+          url("https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80")
+            no-repeat center center/cover;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 40px;
+        border-radius: 15px;
+        width: 400px;
+        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+      }
+      h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        letter-spacing: 1px;
+      }
+      .input-group {
+        margin-bottom: 20px;
+      }
+      .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 14px;
+      }
+      .input-group input {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        outline: none;
+      }
+      .input-group input::placeholder {
+        color: #ddd;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 5px;
+        background: #d4af37;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      button:hover {
+        background: #b5952f;
+      }
+      .switch-form {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 13px;
+      }
+      .switch-form a {
+        color: #d4af37;
+        text-decoration: none;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .message {
+        margin-top: 15px;
+        text-align: center;
+        font-size: 14px;
+        color: #ff6b6b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>ĐĂNG NHẬP</h2>
+      <form id="loginForm">
+        <div class="input-group">
+          <label>Email</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="Nhập email của bạn"
+            required
+          />
+        </div>
+        <div class="input-group">
+          <label>Mật khẩu</label>
+          <input
+            type="password"
+            id="password"
+            placeholder="Nhập mật khẩu"
+            required
+          />
+        </div>
+        <button type="submit">VÀO HỆ THỐNG</button>
+        <div class="message" id="msgBox"></div>
+      </form>
+      <div class="switch-form">
+        Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "https://localhost:7182/api/KhachHang/dang-nhap";
+
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const msgBox = document.getElementById("msgBox");
+
+          msgBox.style.color = "white";
+          msgBox.innerText = "Đang kết nối...";
+
+          try {
+            // Gọi API Backend
+            const response = await fetch(
+              `${API_URL}?email=${encodeURIComponent(email)}&matKhauGoc=${encodeURIComponent(password)}`,
+              {
+                method: "POST",
+                headers: { Accept: "*/*" },
+              },
+            );
+
+            if (response.ok) {
+              const data = await response.json();
+
+              localStorage.setItem("hotel_token", data.token);
+              localStorage.setItem("hotel_makh", data.maKh);
+
+              // Phân luồng
+              if (data.vaiTro === "Admin") {
+                window.location.href = "admin.html";
+              } else {
+                window.location.href = "index.html";
+              }
+            } else {
+              // Xử lý lỗi trả về từ Backend (Sai pass, khóa tài khoản...)
+              const errorText = await response.text();
+              msgBox.style.color = "#ff6b6b";
+              msgBox.innerText = errorText;
+            }
+          } catch (error) {
+            msgBox.style.color = "#ff6b6b";
+            msgBox.innerText =
+              "Không thể kết nối đến máy chủ. Hãy kiểm tra Backend!";
+            console.error(error);
+          }
+        });
+
+      // Hàm hỗ trợ:
+      function getRoleFromToken(token) {
+        try {
+          const payload = JSON.parse(atob(token.split(".")[1]));
+
+          return (
+            payload[
+              "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            ] || payload.role
+          );
+        } catch (e) {
+          return null;
+        }
+      }
+    </script>
+  </body>
+</html>

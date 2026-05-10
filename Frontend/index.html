@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trang Chủ - Luxury Hotel</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      body {
+        background-color: #f9f9f9;
+        color: #333;
+      }
+
+      /*  THANH ĐIỀU HƯỚNG  */
+      header {
+        background-color: #2c3e50;
+        color: white;
+        padding: 15px 50px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .logo {
+        font-size: 24px;
+        font-weight: bold;
+        color: #d4af37;
+        letter-spacing: 2px;
+        cursor: pointer;
+      }
+      .nav-links {
+        list-style: none;
+        display: flex;
+        gap: 20px;
+      }
+      .nav-links li {
+        cursor: pointer;
+        font-weight: 500;
+        transition: 0.3s;
+      }
+      .nav-links li:hover {
+        color: #d4af37;
+      }
+
+      .user-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .btn-login {
+        background-color: #d4af37;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+        text-decoration: none;
+      }
+      .btn-login:hover {
+        background-color: #b5952f;
+      }
+      .user-info {
+        display: none;
+        font-weight: bold;
+        color: #d4af37;
+      }
+      .btn-logout {
+        display: none;
+        background: transparent;
+        color: #e74c3c;
+        border: 1px solid #e74c3c;
+        padding: 5px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .btn-logout:hover {
+        background: #e74c3c;
+        color: white;
+      }
+
+      /*  (BANNER) */
+      .hero {
+        height: 60vh;
+        background:
+          linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+          url("https://images.unsplash.com/photo-1542314831-c6a4d1409e1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80")
+            center/cover;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-align: center;
+      }
+      .hero h1 {
+        font-size: 48px;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+      .hero p {
+        font-size: 18px;
+        margin-bottom: 30px;
+      }
+
+      /* ---- DANH SÁCH PHÒNG ---- */
+      .container {
+        max-width: 1200px;
+        margin: 50px auto;
+        padding: 0 20px;
+      }
+      .section-title {
+        text-align: center;
+        font-size: 32px;
+        margin-bottom: 40px;
+        color: #2c3e50;
+      }
+      .section-title::after {
+        content: "";
+        display: block;
+        width: 80px;
+        height: 3px;
+        background: #d4af37;
+        margin: 10px auto 0;
+      }
+
+      .room-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+      }
+      .room-card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: 0.3s;
+      }
+      .room-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      }
+      .room-img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+      }
+      .room-info {
+        padding: 20px;
+      }
+      .room-type {
+        color: #7f8c8d;
+        font-size: 14px;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+      }
+      .room-name {
+        font-size: 22px;
+        color: #2c3e50;
+        margin-bottom: 15px;
+      }
+      .room-price {
+        font-size: 20px;
+        color: #d4af37;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+      .btn-book {
+        width: 100%;
+        background: #2c3e50;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      .btn-book:hover {
+        background: #d4af37;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">LUXURY HOTEL</div>
+      <ul class="nav-links">
+        <li>Trang chủ</li>
+        <li>Hạng phòng</li>
+        <li>Dịch vụ</li>
+        <li>Liên hệ</li>
+        <li onclick="openHistory()">Lịch sử đặt phòng</li>
+      </ul>
+      <div class="user-section">
+        <a href="login.html" id="btnLogin" class="btn-login">Đăng Nhập</a>
+        <span id="userInfo" class="user-info">Xin chào, Khách</span>
+        <button id="btnLogout" class="btn-logout" onclick="dangXuat()">
+          Đăng xuất
+        </button>
+      </div>
+    </header>
+
+    <div class="hero">
+  <h1>Trải nghiệm Đẳng cấp</h1>
+  <p>Nơi dừng chân hoàn hảo cho những kỳ nghỉ trong mơ của bạn</p>
+  
+  <div class="search-container" style="background: white; padding: 20px; border-radius: 10px; display: flex; gap: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-top: -50px; z-index: 100; position: relative; width: 90%; max-width: 1000px; color: #333;">
+    <div style="flex: 1;">
+      <label style="display:block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">ĐỊA ĐIỂM</label>
+      <select id="searchDiaDiem" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;"></select>
+    </div>
+    <div style="flex: 1;">
+      <label style="display:block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">NGÀY NHẬN</label>
+      <input type="date" id="searchNgayNhan" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+    <div style="flex: 1;">
+      <label style="display:block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">NGÀY TRẢ</label>
+      <input type="date" id="searchNgayTra" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+    <div style="flex: 0.5;">
+      <label style="display:block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">NGƯỜI</label>
+      <input type="number" id="searchSoNguoi" value="1" min="1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+    <button onclick="handleTimKiem()" style="background: #d4af37; color: white; border: none; padding: 0 30px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 20px;">TÌM KIẾM</button>
+  </div>
+</div>
+
+    <div class="container">
+      <h2 class="section-title">PHÒNG NỔI BẬT</h2>
+      <div class="room-grid" id="roomList">
+        <div class="room-card">
+          <img
+            src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+            alt="Phòng Standard"
+            class="room-img"
+          />
+          <div class="room-info">
+            <p class="room-type">Phòng Tiêu Chuẩn</p>
+            <h3 class="room-name">Standard Room</h3>
+            <p class="room-price">500.000 VNĐ / Đêm</p>
+            <button class="btn-book" onclick="datPhong('HN101', 500000)">
+              ĐẶT PHÒNG NGAY
+            </button>
+          </div>
+        </div>
+
+        <div class="room-card">
+          <img
+            src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+            alt="Phòng Superior"
+            class="room-img"
+          />
+          <div class="room-info">
+            <p class="room-type">Phòng Cao Cấp</p>
+            <h3 class="room-name">Superior City View</h3>
+            <p class="room-price">850.000 VNĐ / Đêm</p>
+            <button class="btn-book" onclick="datPhong('DN201', 850000)">
+              ĐẶT PHÒNG NGAY
+            </button>
+          </div>
+        </div>
+
+        <div class="room-card">
+          <img
+            src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+            alt="Phòng VIP"
+            class="room-img"
+          />
+          <div class="room-info">
+            <p class="room-type">Phòng Tổng Thống</p>
+            <h3 class="room-name">Luxury Suite VIP</h3>
+            <p class="room-price">2.500.000 VNĐ / Đêm</p>
+            <button class="btn-book" onclick="datPhong('HN102', 2500000)">
+              ĐẶT PHÒNG NGAY
+            </button>
+          </div>
+        </div>
+      </div>
+</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP
+      const token = localStorage.getItem("hotel_token");
+
+      if (token) {
+        
+        document.getElementById("btnLogin").style.display = "none";
+        document.getElementById("userInfo").style.display = "block";
+        document.getElementById("btnLogout").style.display = "block";
+
+        // Lấy email từ token để hiển thị
+        try {
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          // Tìm trường Email trong payload 
+          const email =
+            payload.email ||
+            payload[
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+            ];
+          if (email) {
+            // Cắt lấy phần trước chữ @ để làm tên
+            document.getElementById("userInfo").innerText =
+              "Xin chào, " + email.split("@")[0];
+          }
+        } catch (e) {
+          console.log("Không đọc được Token payload");
+        }
+      }
+
+      // HÀM ĐĂNG XUẤT
+      function dangXuat() {
+        localStorage.removeItem("hotel_token");
+        window.location.reload();
+      }
+
+      // HÀM ĐẶT PHÒNG 
+      async function datPhong(maPhong, giaTien) {
+        // Lấy Mã khách hàng từ Local Storage
+        const maKh = localStorage.getItem("hotel_makh");
+
+        if (!maKh) {
+          alert("Bạn cần Đăng nhập trước khi đặt phòng!:)))");
+          window.location.href = "login.html";
+          return;
+        }
+
+        const xacNhan = confirm(`Bạn muốn tiến hành đặt phòng ${maPhong}?`);
+
+        if (xacNhan) {
+          const homNay = new Date();
+          const ngayMai = new Date(homNay);
+          ngayMai.setDate(homNay.getDate() + 1);
+
+          // Dữ liệu gửi đi CÓ THÊM MaKh
+          const requestData = {
+            maKh: parseInt(maKh),
+            maPhong: maPhong,
+            ngayNhan: homNay.toISOString(),
+            ngayTra: ngayMai.toISOString(),
+            tongTien: giaTien,
+          };
+
+          try {
+            const response = await fetch(
+              "https://localhost:7182/api/DatPhong/tao-don",
+              {
+                method: "POST",
+                headers: {
+                  Accept: "application/json",
+                  "Content-Type": "application/json",
+                  
+                },
+                body: JSON.stringify(requestData),
+              },
+            );
+
+            if (response.ok) {
+              // 1. Đọc dữ liệu trả về từ API 
+              const data = await response.json();
+
+              alert(
+                `Tuyệt vời! Đã tạo đơn số ${data.maDatPhong}. Đang chuyển sang cổng thanh toán VNPay...`,
+              );
+
+              // 2. Gọi API để lấy link thanh toán VNPay
+              
+              const urlThanhToan = `https://localhost:7182/api/ThanhToan/tao-url?maDatPhong=${data.maDatPhong}&tongTien=${giaTien}`;
+
+              try {
+                const resPay = await fetch(urlThanhToan);
+                if (resPay.ok) {
+                  const payData = await resPay.json();
+                  // 3. NHẢY TRANG: Đưa khách sang VNPay
+                  window.location.href = payData.url;
+                } else {
+                  alert("Lỗi: Không lấy được link thanh toán từ hệ thống!");
+                }
+              } catch (err) {
+                alert("Lỗi kết nối khi gọi VNPay!");
+              }
+            } else {
+              // Nếu API tạo đơn trả về lỗi (ví dụ 400, 500)
+              const errorText = await response.text();
+              alert("Lỗi đặt phòng: " + errorText);
+            }
+          } catch (error) {
+            alert("Không thể kết nối Server!");
+          }
+        }
+      }
+    
+      // KIỂM TRA KẾT QUẢ THANH TOÁN TỪ VNPAY TRẢ VỀ
+      
+      window.addEventListener('load', function() {
+        // Đọc các tham số trên thanh địa chỉ URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const vnp_ResponseCode = urlParams.get('vnp_ResponseCode');
+        const vnp_TxnRef = urlParams.get('vnp_TxnRef'); 
+
+        // Nếu trên URL có chứa vnp_ResponseCode nghĩa là khách vừa từ VNPay về
+        if (vnp_ResponseCode !== null) {
+          if (vnp_ResponseCode === '00') {
+            alert(`🎉 Tuyệt vời! Chúc mừng bạn đã thanh toán thành công cho đơn đặt phòng số ${vnp_TxnRef}.`);
+          } else {
+            alert(`❌ Thanh toán thất bại :VVV hoặc đã bị hủy (Mã lỗi: ${vnp_ResponseCode}). Vui lòng thử lại!`);
+          }
+          
+          
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      });
+      // 1. Tự động lấy danh sách địa điểm khi load trang
+async function loadDiaDiem() {
+    const res = await fetch("https://localhost:7182/api/Phong/dia-diem");
+    const data = await res.json();
+    let options = '<option value="">Chọn địa điểm...</option>';
+    data.forEach(d => options += `<option value="${d}">${d}</option>`);
+    document.getElementById("searchDiaDiem").innerHTML = options;
+}
+
+// 2. Hàm thực hiện tìm kiếm và hiển thị danh sách phòng
+async function handleTimKiem() {
+    const diaDiem = document.getElementById("searchDiaDiem").value;
+    const ngayNhan = document.getElementById("searchNgayNhan").value;
+    const ngayTra = document.getElementById("searchNgayTra").value;
+    const soNguoi = document.getElementById("searchSoNguoi").value;
+
+    if(!diaDiem || !ngayNhan || !ngayTra) {
+        alert("Vui lòng nhập đầy đủ thông tin tìm kiếm!");
+        return;
+    }
+
+    const url = `https://localhost:7182/api/Phong/tim-kiem?diaDiem=${diaDiem}&ngayNhan=${ngayNhan}&ngayTra=${ngayTra}&soNguoi=${soNguoi}`;
+    
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const roomList = document.getElementById("roomList");
+        roomList.innerHTML = ""; 
+        if(data.length === 0) {
+            roomList.innerHTML = "<p style='text-align:center; width:100%;'>Không tìm thấy phòng trống phù hợp.</p>";
+            return;
+        }
+
+        data.forEach(p => {
+            roomList.innerHTML += `
+                <div class="room-card">
+                    <img src="${p.anhDaiDien || 'https://via.placeholder.com/300'}" class="room-img" />
+                    <div class="room-info">
+                        <p class="room-type">${p.tenKhachSan}</p>
+                        <h3 class="room-name">${p.loaiPhong}</h3>
+                        <p class="room-price">${p.gia.toLocaleString()} VNĐ / Đêm</p>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-book" onclick="window.location.href='detail.html?id=${p.maPhong}'" style="background:#7f8c8d;">CHI TIẾT</button>
+                            <button class="btn-book" onclick="datPhong('${p.maPhong}', ${p.gia})">ĐẶT PHÒNG</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    } catch (err) { alert("Lỗi kết nối API!"); }
+}
+
+// Gọi load địa điểm khi khởi chạy
+loadDiaDiem();
+// Hàm mở Pop-up lịch sử
+async function openHistory() {
+    const maKh = localStorage.getItem("hotel_makh");
+    if (!maKh) {
+        alert("Vui lòng đăng nhập để xem lịch sử!");
+        return;
+    }
+
+    document.getElementById("historyModal").style.display = "block";
+    const historyContent = document.getElementById("historyContent");
+    historyContent.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">Đang tải...</td></tr>';
+
+    try {
+        const res = await fetch(`https://localhost:7182/api/DatPhong/lich-su/${maKh}`);
+        const data = await res.json();
+        
+        let html = "";
+        if (data.length === 0) {
+            html = '<tr><td colspan="6" style="text-align:center; padding:20px;">Bạn chưa có đơn đặt phòng nào.</td></tr>';
+        } else {
+            data.forEach(item => {
+                const isCancellable = (item.trangThai !== "Success" && item.trangThai !== "Đã hủy");
+                html += `
+                    <tr>
+                        <td style="padding:12px; border-bottom:1px solid #eee;">#${item.maDatPhong}</td>
+                        <td style="padding:12px; border-bottom:1px solid #eee;">${item.maPhong}</td>
+                        <td style="padding:12px; border-bottom:1px solid #eee;">${new Date(item.ngayNhan).toLocaleDateString('vi-VN')} - ${new Date(item.ngayTra).toLocaleDateString('vi-VN')}</td>
+                        <td style="padding:12px; border-bottom:1px solid #eee; font-weight:bold;">${item.tongTien.toLocaleString()}đ</td>
+                        <td style="padding:12px; border-bottom:1px solid #eee;">
+                            <span style="padding:4px 8px; border-radius:4px; font-size:12px; color:white; background:${item.trangThai === 'Success' ? '#2ecc71' : item.trangThai === 'Đã hủy' ? '#e74c3c' : '#f39c12'}">
+                                ${item.trangThai}
+                            </span>
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid #eee;">
+                            ${isCancellable ? `<button onclick="huyDon(${item.maDatPhong})" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Hủy đơn</button>` : '-'}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        historyContent.innerHTML = html;
+    } catch (err) {
+        historyContent.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Lỗi kết nối máy chủ!</td></tr>';
+    }
+}
+
+function closeHistory() {
+    document.getElementById("historyModal").style.display = "none";
+}
+
+// UC10: Hàm xử lý hủy đơn
+async function huyDon(id) {
+    if (confirm(`Bạn có chắc chắn muốn hủy đơn hàng #${id}?`)) {
+        try {
+            const res = await fetch(`https://localhost:7182/api/DatPhong/huy-don/${id}`, { method: 'PUT' });
+            if (res.ok) {
+                alert("Đã hủy đơn thành công!");
+                openHistory(); 
+            } else {
+                const msg = await res.text();
+                alert("Lỗi: " + msg);
+            }
+        } catch (err) { alert("Lỗi kết nối!"); }
+    }
+}
+    </script>
+    <div id="historyModal" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); overflow:auto;">
+    <div style="background:white; margin:10% auto; padding:25px; border-radius:12px; width:80%; max-width:900px; position:relative; box-shadow: 0 5px 20px rgba(0,0,0,0.3);">
+        <span onclick="closeHistory()" style="position:absolute; right:20px; top:15px; font-size:28px; font-weight:bold; cursor:pointer; color:#7f8c8d;">&times;</span>
+        <h2 style="color:#2c3e50; border-bottom:3px solid #d4af37; padding-bottom:10px; margin-bottom:20px;">LỊCH SỬ ĐẶT PHÒNG</h2>
+        
+        <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; text-align:left;">
+                <thead>
+                    <tr style="background:#f4f7f6; color:#2c3e50;">
+                        <th style="padding:12px; border-bottom:2px solid #ddd;">Mã đơn</th>
+                        <th style="padding:12px; border-bottom:2px solid #ddd;">Phòng</th>
+                        <th style="padding:12px; border-bottom:2px solid #ddd;">Ngày Nhận - Trả</th>
+                        <th style="padding:12px; border-bottom:2px solid #ddd;">Tổng tiền</th>
+                        <th style="padding:12px; border-bottom:2px solid #ddd;">Trạng thái</th>
+                        <th style="padding:12px; border-bottom:2px solid #ddd;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="historyContent">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+  </body>
+</html>
