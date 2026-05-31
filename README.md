@@ -83,6 +83,16 @@ LuxuryHotel_FullProject/
 
 > **💡 Mẹo test luồng:** Giảng viên có thể dùng tài khoản **Customer** để tạo một đơn đặt phòng (có thể thử thanh toán VNPay Sandbox), sau đó đăng xuất và dùng tài khoản **Admin** để kiểm tra thống kê doanh thu và quản lý đơn hàng đó.
 ## ⚙️ Hướng dẫn cài đặt & Khởi chạy
+**3. Thông tin thẻ Test thanh toán VNPay (Sandbox)**
+
+Để test chức năng thanh toán online qua cổng VNPay (chọn phương thức thanh toán qua thẻ ATM nội địa), vui lòng sử dụng thông tin thẻ test sau:
+- **Ngân hàng:** `NCB`
+- **Số thẻ:** `9704198526191432198`
+- **Tên chủ thẻ:** `NGUYEN VAN A`
+- **Ngày phát hành:** `07/15`
+- **Mật khẩu OTP:** `123456`
+
+---
 
 ### 1. Yêu cầu hệ thống
 - [.NET SDK 8.0/10.0](https://dotnet.microsoft.com/download) trở lên.
