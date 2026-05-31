@@ -67,7 +67,21 @@ LuxuryHotel_FullProject/
 ```
 
 ---
+## 🔑 Tài khoản Demo 
 
+Để thuận tiện cho việc kiểm tra và trải nghiệm toàn bộ luồng nghiệp vụ của hệ thống mà không cần đăng ký mới, giảng viên có thể sử dụng các tài khoản đã được thiết lập sẵn dưới đây ạ:
+
+**1. Tài khoản Quản trị viên (Admin)**
+
+- **Email:** `admin@luxuryhotel.com`
+- **Mật khẩu:** `123456`
+
+**2. Tài khoản Khách hàng (Customer)**
+
+- **Email:** `quang36@gmail.com`
+- **Mật khẩu:** `36363636`
+
+> **💡 Mẹo test luồng:** Giảng viên có thể dùng tài khoản **Customer** để tạo một đơn đặt phòng (có thể thử thanh toán VNPay Sandbox), sau đó đăng xuất và dùng tài khoản **Admin** để kiểm tra thống kê doanh thu và quản lý đơn hàng đó.
 ## ⚙️ Hướng dẫn cài đặt & Khởi chạy
 
 ### 1. Yêu cầu hệ thống
