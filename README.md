@@ -25,7 +25,7 @@ Luxury Hotel là một hệ thống quản lý khách sạn Full-stack được 
 
 **Frontend:**
 - HTML5, CSS3, Vanilla JavaScript.
-- Thiết kế giao diện Glassmorphism hiện đại, Responsive UI.
+- Thiết kế giao diện hiện đại, Responsive UI.
 - Fetch API để giao tiếp với Backend.
 
 **Backend:**
@@ -81,7 +81,7 @@ LuxuryHotel_FullProject/
 - **Email:** `quang36@gmail.com`
 - **Mật khẩu:** `36363636`
 
-> **💡 Mẹo test luồng:** Giảng viên có thể dùng tài khoản **Customer** để tạo một đơn đặt phòng (có thể thử thanh toán VNPay Sandbox), sau đó đăng xuất và dùng tài khoản **Admin** để kiểm tra thống kê doanh thu và quản lý đơn hàng đó.
+> **💡 Mẹo test luồng:** Giảng viên có thể dùng tài khoản **Customer** có sẵn hoặc đăng ký tài khoản mới để tạo một đơn đặt phòng (có thể thử thanh toán VNPay Sandbox), sau đó đăng xuất và dùng tài khoản **Admin** để kiểm tra thống kê doanh thu và quản lý đơn hàng đó.
 ## ⚙️ Hướng dẫn cài đặt & Khởi chạy
 **3. Thông tin thẻ Test thanh toán VNPay (Sandbox)**
 
