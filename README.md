@@ -28,7 +28,7 @@ Luxury Hotel là một hệ thống quản lý khách sạn Full-stack được 
 **Frontend:**
 
 - HTML5, CSS3, Vanilla JavaScript.
-- Thiết kế giao diện Glassmorphism hiện đại, Responsive UI.
+- Thiết kế giao diện hiện đại, Responsive UI.
 - Fetch API để giao tiếp với Backend.
 
 **Backend:**
@@ -74,9 +74,9 @@ LuxuryHotel_FullProject/
 
 ---
 
-## 🔑 Tài khoản Demo (Dành cho Giảng viên chấm bài)
+## 🔑 Tài khoản Demo
 
-Để thuận tiện cho việc kiểm tra và trải nghiệm toàn bộ luồng nghiệp vụ của hệ thống mà không cần đăng ký mới, giảng viên có thể sử dụng các tài khoản đã được thiết lập sẵn dưới đây:
+Để thuận tiện cho việc kiểm tra và trải nghiệm toàn bộ luồng nghiệp vụ của hệ thống mà không cần đăng ký mới, giảng viên có thể sử dụng các tài khoản đã được thiết lập sẵn dưới đây ạ:
 
 **1. Tài khoản Quản trị viên (Admin)**
 
@@ -88,11 +88,14 @@ LuxuryHotel_FullProject/
 - **Email:** `quang36@gmail.com`
 - **Mật khẩu:** `36363636`
 
-> **💡 Mẹo test luồng:** Giảng viên có thể dùng tài khoản **Customer** để tạo một đơn đặt phòng (có thể thử thanh toán VNPay Sandbox), sau đó đăng xuất và dùng tài khoản **Admin** để kiểm tra thống kê doanh thu và quản lý đơn hàng đó.
+> **💡 Mẹo test luồng:** Giảng viên có thể dùng tài khoản **Customer** có sẵn hoặc đăng ký tài khoản mới để tạo một đơn đặt phòng (có thể thử thanh toán VNPay Sandbox), sau đó đăng xuất và dùng tài khoản **Admin** để kiểm tra thống kê doanh thu và quản lý đơn hàng đó.
+
+## ⚙️ Hướng dẫn cài đặt & Khởi chạy
 
 **3. Thông tin thẻ Test thanh toán VNPay (Sandbox)**
 
 Để test chức năng thanh toán online qua cổng VNPay (chọn phương thức thanh toán qua thẻ ATM nội địa), vui lòng sử dụng thông tin thẻ test sau:
+
 - **Ngân hàng:** `NCB`
 - **Số thẻ:** `9704198526191432198`
 - **Tên chủ thẻ:** `NGUYEN VAN A`
@@ -100,8 +103,6 @@ LuxuryHotel_FullProject/
 - **Mật khẩu OTP:** `123456`
 
 ---
-
-## ⚙️ Hướng dẫn cài đặt & Khởi chạy
 
 ### 1. Yêu cầu hệ thống
 
