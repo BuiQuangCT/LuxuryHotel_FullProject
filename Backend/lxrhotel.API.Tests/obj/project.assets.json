@@ -1832,7 +1832,6 @@
           "BCrypt.Net-Next": "4.1.0",
           "MailKit": "4.16.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "10.0.7",
-          "Microsoft.AspNetCore.Mvc.Testing": "10.0.9",
           "Microsoft.AspNetCore.OpenApi": "10.0.7",
           "Microsoft.EntityFrameworkCore.SqlServer": "10.0.7",
           "Swashbuckle.AspNetCore": "10.1.7"
@@ -4609,8 +4608,8 @@
     },
     "lxrhotel.API/1.0.0": {
       "type": "project",
-      "path": "../../../repos/lxrhotel.API/lxrhotel.API.csproj",
-      "msbuildProject": "../../../repos/lxrhotel.API/lxrhotel.API.csproj"
+      "path": "../lxrhotel.API/lxrhotel.API.csproj",
+      "msbuildProject": "../lxrhotel.API/lxrhotel.API.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -4659,8 +4658,8 @@
           "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {
-            "C:\\Users\\admin\\source\\repos\\lxrhotel.API\\lxrhotel.API.csproj": {
-              "projectPath": "C:\\Users\\admin\\source\\repos\\lxrhotel.API\\lxrhotel.API.csproj"
+            "C:\\Users\\admin\\source\\LuxuryHotel_FullProject\\Backend\\lxrhotel.API\\lxrhotel.API.csproj": {
+              "projectPath": "C:\\Users\\admin\\source\\LuxuryHotel_FullProject\\Backend\\lxrhotel.API\\lxrhotel.API.csproj"
             }
           }
         }

@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\repos\lxrhotel.API\lxrhotel.API.csproj" />
+    <ProjectReference Include="..\lxrhotel.API\lxrhotel.API.csproj" />
   </ItemGroup>
 
   <ItemGroup>

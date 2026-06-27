@@ -30,8 +30,8 @@ namespace lxrhotel.API.Tests
             // Arrange
             var context = CreateContext();
             var khachSan = new KhachSan { MaKs = "KS01", TenKs = "Luxury SG", DiaDiem = "TP.HCM" };
-            var phong1 = new Phong { MaPhong = "P101", MaKs = "KS01", SucChua = 2, MaKsNavigation = khachSan };
-            var phong2 = new Phong { MaPhong = "P102", MaKs = "KS01", SucChua = 4, MaKsNavigation = khachSan };
+            var phong1 = new Phong { MaPhong = "P101", MaKs = "KS01", SucChua = 2, MaKsNavigation = khachSan, LoaiPhong = "Standard" };
+            var phong2 = new Phong { MaPhong = "P102", MaKs = "KS01", SucChua = 4, MaKsNavigation = khachSan, LoaiPhong = "Standard" };
             context.KhachSans.Add(khachSan);
             context.Phongs.AddRange(phong1, phong2);
             await context.SaveChangesAsync();
@@ -45,7 +45,7 @@ namespace lxrhotel.API.Tests
 
             // Assert
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var rooms = (okResult.Value as IEnumerable<object>).ToList();
+            var rooms = okResult.Value.Should().BeAssignableTo<IEnumerable<object>>().Subject.ToList();
             rooms.Should().HaveCount(2);
         }
 
@@ -55,14 +55,18 @@ namespace lxrhotel.API.Tests
             // Arrange
             var context = CreateContext();
             var khachSan = new KhachSan { MaKs = "KS01", TenKs = "Luxury SG", DiaDiem = "TP.HCM" };
-            var phong1 = new Phong { MaPhong = "P101", MaKs = "KS01", SucChua = 2, MaKsNavigation = khachSan }; // Available
-            var phong2 = new Phong { MaPhong = "P102", MaKs = "KS01", SucChua = 2, MaKsNavigation = khachSan }; // Booked
+            var khachHang = new KhachHang { MaKh = 1, HoTen = "Test User", Email = "test@example.com", MatKhau = "abc" };
+            var phong1 = new Phong { MaPhong = "P101", MaKs = "KS01", SucChua = 2, MaKsNavigation = khachSan, LoaiPhong = "Standard" }; // Available
+            var phong2 = new Phong { MaPhong = "P102", MaKs = "KS01", SucChua = 2, MaKsNavigation = khachSan, LoaiPhong = "Standard" }; // Booked
             var datPhong = new DatPhong
             {
-                MaDatPhong = 1, MaPhong = "P102", TrangThai = "Success",
-                NgayNhan = new DateTime(2024, 12, 21), NgayTra = new DateTime(2024, 12, 23) // Overlaps
+                MaDatPhong = 1, MaPhong = "P102", TrangThai = "Success", MaKh = 1,
+                NgayNhan = new DateTime(2024, 12, 21), NgayTra = new DateTime(2024, 12, 23), // Overlaps
+                MaKhNavigation = khachHang,
+                MaPhongNavigation = phong2
             };
             context.KhachSans.Add(khachSan);
+            context.KhachHangs.Add(khachHang);
             context.Phongs.AddRange(phong1, phong2);
             context.DatPhongs.Add(datPhong);
             await context.SaveChangesAsync();
@@ -76,9 +80,9 @@ namespace lxrhotel.API.Tests
 
             // Assert
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var rooms = (okResult.Value as IEnumerable<dynamic>).ToList();
+            var rooms = okResult.Value.Should().BeAssignableTo<IEnumerable<dynamic>>().Subject.ToList();
             rooms.Should().HaveCount(1);
-            rooms.First().MaPhong.Should().Be("P101");
+            ((string)rooms.First().MaPhong).Should().Be("P101");
         }
 
         [Fact]
@@ -121,6 +125,7 @@ namespace lxrhotel.API.Tests
             // Assert
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
             var roomDetails = okResult.Value as dynamic;
+            Assert.NotNull(roomDetails);
             ((string)roomDetails.MaPhong).Should().Be("P101");
             ((string)roomDetails.LoaiPhong).Should().Be("Deluxe");
             ((string)roomDetails.KhachSan.TenKS).Should().Be("Luxury SG");

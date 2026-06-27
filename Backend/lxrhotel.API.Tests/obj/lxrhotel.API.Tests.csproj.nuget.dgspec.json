@@ -33,8 +33,8 @@
             "framework": "net10.0",
             "targetAlias": "net10.0",
             "projectReferences": {
-              "C:\\Users\\admin\\source\\repos\\lxrhotel.API\\lxrhotel.API.csproj": {
-                "projectPath": "C:\\Users\\admin\\source\\repos\\lxrhotel.API\\lxrhotel.API.csproj"
+              "C:\\Users\\admin\\source\\LuxuryHotel_FullProject\\Backend\\lxrhotel.API\\lxrhotel.API.csproj": {
+                "projectPath": "C:\\Users\\admin\\source\\LuxuryHotel_FullProject\\Backend\\lxrhotel.API\\lxrhotel.API.csproj"
               }
             }
           }
@@ -383,14 +383,14 @@
         }
       }
     },
-    "C:\\Users\\admin\\source\\repos\\lxrhotel.API\\lxrhotel.API.csproj": {
+    "C:\\Users\\admin\\source\\LuxuryHotel_FullProject\\Backend\\lxrhotel.API\\lxrhotel.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\admin\\source\\repos\\lxrhotel.API\\lxrhotel.API.csproj",
+        "projectUniqueName": "C:\\Users\\admin\\source\\LuxuryHotel_FullProject\\Backend\\lxrhotel.API\\lxrhotel.API.csproj",
         "projectName": "lxrhotel.API",
-        "projectPath": "C:\\Users\\admin\\source\\repos\\lxrhotel.API\\lxrhotel.API.csproj",
+        "projectPath": "C:\\Users\\admin\\source\\LuxuryHotel_FullProject\\Backend\\lxrhotel.API\\lxrhotel.API.csproj",
         "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\admin\\source\\repos\\lxrhotel.API\\obj\\",
+        "outputPath": "C:\\Users\\admin\\source\\LuxuryHotel_FullProject\\Backend\\lxrhotel.API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -442,10 +442,6 @@
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[10.0.7, )"
-            },
-            "Microsoft.AspNetCore.Mvc.Testing": {
-              "target": "Package",
-              "version": "[10.0.9, )"
             },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",

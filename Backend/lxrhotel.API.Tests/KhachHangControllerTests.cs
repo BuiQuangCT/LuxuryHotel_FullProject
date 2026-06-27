@@ -54,6 +54,7 @@ namespace lxrhotel.API.Tests
             var user = new KhachHang
             {
                 MaKh = 1,
+                HoTen = "Test User",
                 Email = email,
                 MatKhau = hashedPassword,
                 TrangThai = "active",
@@ -69,9 +70,15 @@ namespace lxrhotel.API.Tests
 
             // Assert
             result.Should().BeOfType<OkObjectResult>();
-            var data = (result as OkObjectResult).Value;
-            ((string)((dynamic)data).token).Should().NotBeNullOrEmpty();
-            ((string)((dynamic)data).vaiTro).Should().Be("KhachHang");
+            var okResult = result as OkObjectResult;
+            okResult.Value.Should().NotBeNull();
+
+            var data = okResult.Value;
+            var token = data.GetType().GetProperty("token")?.GetValue(data, null) as string;
+            var vaiTro = data.GetType().GetProperty("vaiTro")?.GetValue(data, null) as string;
+
+            token.Should().NotBeNullOrEmpty();
+            vaiTro.Should().Be("KhachHang");
         }
 
         [Fact]
@@ -98,7 +105,7 @@ namespace lxrhotel.API.Tests
             var password = "password123";
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
 
-            var user = new KhachHang { MaKh = 1, Email = email, MatKhau = hashedPassword, TrangThai = "active" };
+            var user = new KhachHang { MaKh = 1, HoTen = "Test User", Email = email, MatKhau = hashedPassword, TrangThai = "active" };
             context.KhachHangs.Add(user);
             await context.SaveChangesAsync();
 
@@ -121,7 +128,7 @@ namespace lxrhotel.API.Tests
             var password = "password123";
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
 
-            var user = new KhachHang { MaKh = 1, Email = email, MatKhau = hashedPassword, TrangThai = "locked" };
+            var user = new KhachHang { MaKh = 1, HoTen = "Test User", Email = email, MatKhau = hashedPassword, TrangThai = "locked" };
             context.KhachHangs.Add(user);
             await context.SaveChangesAsync();
 
