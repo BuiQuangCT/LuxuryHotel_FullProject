@@ -81,11 +81,12 @@ namespace lxrhotel.API.Controllers
             var don = await _context.DatPhongs.FindAsync(maDatPhong);
             if (don == null) return NotFound("Không tìm thấy đơn hàng.");
 
-           
-            if (don.TrangThai == "Success" || don.TrangThai == "Đã hủy" || don.TrangThai == "\u0110\u00e3 h\u1ee7y")
+            // Chỉ cho phép hủy đơn đang ở trạng thái "Pending"
+            // Chuẩn hóa việc kiểm tra trạng thái để tránh lỗi encoding
+            if (don.TrangThai != "Pending")
                 return BadRequest("Không thể hủy đơn hàng ở trạng thái này.");
 
-            don.TrangThai = "\u0110\u00e3 h\u1ee7y"; // "Đã hủy"
+            don.TrangThai = "Đã hủy"; // Chuẩn hóa trạng thái
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Đã hủy đơn đặt phòng thành công." });

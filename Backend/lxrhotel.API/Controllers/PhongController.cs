@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using lxrhotel.API.Models;
 
@@ -10,21 +10,21 @@ namespace lxrhotel.API.Controllers
     {
         private readonly LuxuryHotelContext _context;
 
-        public PhongController()
+        public PhongController(LuxuryHotelContext context)
         {
-            _context = new LuxuryHotelContext();
+            _context = context;
         }
 
       
         // API 1: LẤY DANH SÁCH ĐỊA ĐIỂM
         
         [HttpGet("dia-diem")]
-        public IActionResult GetDanhSachDiaDiem()
+        public async Task<IActionResult> GetDanhSachDiaDiem()
         {
-            var danhSachDiaDiem = _context.KhachSans
+            var danhSachDiaDiem = await _context.KhachSans
                                           .Select(ks => ks.DiaDiem)
                                           .Distinct()
-                                          .ToList();
+                                          .ToListAsync();
 
             return Ok(danhSachDiaDiem);
         }
@@ -32,15 +32,12 @@ namespace lxrhotel.API.Controllers
         // API 2: TÌM KIẾM PHÒNG TRỐNG
         
         [HttpGet("tim-kiem")]
-        public IActionResult TimKiemPhong(string diaDiem, DateTime ngayNhan, DateTime ngayTra, int soNguoi)
+        public async Task<IActionResult> TimKiemPhong(string diaDiem, DateTime ngayNhan, DateTime ngayTra, int soNguoi)
         {
             if (ngayNhan >= ngayTra) return BadRequest("Ngày nhận phải trước ngày trả.");
 
-            var phongTrong = _context.Phongs
-                // CHỈNH SỬA: Thêm điều kiện kiểm tra trạng thái phòng phải là "Trống" hoặc "Sẵn sàng"
-                .Where(p => (p.TrangThai == "Trống" || p.TrangThai == "Sẵn sàng") && 
-                            p.MaKsNavigation.DiaDiem.Contains(diaDiem) && 
-                            p.SucChua >= soNguoi)
+            var phongTrong = await _context.Phongs
+                .Where(p => p.MaKsNavigation.DiaDiem.Contains(diaDiem) && p.SucChua >= soNguoi)
                 .Where(p => !p.DatPhongs.Any(dp =>
                     dp.TrangThai != "Đã hủy" &&
                     dp.NgayNhan < ngayTra &&
@@ -55,7 +52,7 @@ namespace lxrhotel.API.Controllers
                     SucChua = p.SucChua,
                     AnhDaiDien = p.HinhAnhs.Select(a => a.DuongDan).FirstOrDefault() 
                 })
-                .ToList();
+                .ToListAsync();
 
             return Ok(phongTrong);
         }
@@ -67,8 +64,6 @@ namespace lxrhotel.API.Controllers
             
             var ketQua = await _context.Phongs
                 .FromSqlInterpolated($"EXEC sp_TimKiemPhong @DiaDiem={diaDiem}, @NgayNhan={ngayNhan}, @NgayTra={ngayTra}, @SoNguoi={soNguoi}")
-                // CHỈNH SỬA: Thêm điều kiện lọc sau khi thực thi Stored Procedure
-                .Where(p => p.TrangThai == "Trống" || p.TrangThai == "Sẵn sàng")
                 .Select(p => new {
                     p.MaPhong,
                     TenKhachSan = p.MaKsNavigation.TenKs,
@@ -86,12 +81,12 @@ namespace lxrhotel.API.Controllers
         // API 3: LẤY CHI TIẾT 1 PHÒNG
       
         [HttpGet("{maPhong}")]
-        public IActionResult GetChiTietPhong(string maPhong)
+        public async Task<IActionResult> GetChiTietPhong(string maPhong)
         {
-            var chiTiet = _context.Phongs
+            var chiTiet = await _context.Phongs
                 .Include(p => p.MaKsNavigation)
                 .Include(p => p.HinhAnhs)
-                .FirstOrDefault(p => p.MaPhong == maPhong);
+                .FirstOrDefaultAsync(p => p.MaPhong == maPhong);
 
             if (chiTiet == null) return NotFound("Không tìm thấy phòng này.");
 

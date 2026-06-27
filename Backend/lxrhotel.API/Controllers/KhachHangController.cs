@@ -17,11 +17,13 @@ namespace lxrhotel.API.Controllers
     {
         private readonly LuxuryHotelContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
-        public KhachHangController(LuxuryHotelContext context, IConfiguration configuration)
+        public KhachHangController(LuxuryHotelContext context, IConfiguration configuration, IEmailService emailService)
         {
             _context = context;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
         // 1. API Đăng ký tài khoản
@@ -185,11 +187,9 @@ namespace lxrhotel.API.Controllers
             string newPassword = "LXR" + new Random().Next(100000, 999999).ToString();
 
             // Gửi mật khẩu mới qua email thay vì trả về trong API
-            // Lưu ý: Trong thực tế, EmailService nên được inject qua DI thay vì new()
             try
             {
-                var emailService = new EmailService();
-                await emailService.SendNewPasswordAsync(user.Email, user.HoTen, newPassword);
+                await _emailService.SendNewPasswordAsync(user.Email, user.HoTen, newPassword);
             }
             catch (Exception ex)
             {

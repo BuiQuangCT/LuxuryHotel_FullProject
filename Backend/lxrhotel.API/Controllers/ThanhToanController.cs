@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿using Microsoft.AspNetCore.Mvc;
 using lxrhotel.API.Models;
+using lxrhotel.API.Services;
 using System;
 using System.Threading.Tasks;
 
@@ -10,10 +11,12 @@ namespace lxrhotel.API.Controllers
     public class ThanhToanController : ControllerBase
     {
         private readonly LuxuryHotelContext _context;
+        private readonly IEmailService _emailService;
 
-        public ThanhToanController(LuxuryHotelContext context)
+        public ThanhToanController(LuxuryHotelContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         [HttpGet("tao-url")]
@@ -118,9 +121,8 @@ namespace lxrhotel.API.Controllers
                 var khachHang = await _context.KhachHangs.FindAsync(donDatPhong.MaKh);
                 if (khachHang != null)
                 {
-                    var emailSvc = new EmailService();
                     // Chạy ngầm việc gửi email để không làm chậm phản hồi của IPN
-                    _ = emailSvc.SendBookingEmailAsync(khachHang.Email, khachHang.HoTen, donDatPhong.MaDatPhong, donDatPhong.TongTien);
+                    _ = _emailService.SendBookingEmailAsync(khachHang.Email, khachHang.HoTen, donDatPhong.MaDatPhong, donDatPhong.TongTien);
                 }
             }
             else

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using lxrhotel.API.Models; // Đảm bảo namespace này khớp với project của bạn
+using lxrhotel.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// 3. Cấu hình Dependency Injection cho các Service
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 builder.Services.AddCors();
 
 
@@ -63,3 +67,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { } // Make the Program class accessible for integration tests
