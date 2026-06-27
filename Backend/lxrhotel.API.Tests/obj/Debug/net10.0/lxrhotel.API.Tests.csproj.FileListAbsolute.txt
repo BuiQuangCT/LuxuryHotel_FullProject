@@ -1,0 +1,9 @@
+C:\Users\admin\source\LuxuryHotel_FullProject\Backend\lxrhotel.API.Tests\bin\Debug\net10.0\.msCoverageSourceRootsMapping_lxrhotel.API.Tests
+C:\Users\admin\source\LuxuryHotel_FullProject\Backend\lxrhotel.API.Tests\bin\Debug\net10.0\CoverletSourceRootsMapping_lxrhotel.API.Tests
+C:\Users\admin\source\LuxuryHotel_FullProject\Backend\lxrhotel.API.Tests\obj\Debug\net10.0\lxrhotel.API.Tests.csproj.AssemblyReference.cache
+C:\Users\admin\source\LuxuryHotel_FullProject\Backend\lxrhotel.API.Tests\obj\Debug\net10.0\MvcTestingAppManifest.json
+C:\Users\admin\source\LuxuryHotel_FullProject\Backend\lxrhotel.API.Tests\obj\Debug\net10.0\lxrhotel.API.Tests.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\admin\source\LuxuryHotel_FullProject\Backend\lxrhotel.API.Tests\obj\Debug\net10.0\lxrhotel.API.Tests.AssemblyInfoInputs.cache
+C:\Users\admin\source\LuxuryHotel_FullProject\Backend\lxrhotel.API.Tests\obj\Debug\net10.0\lxrhotel.API.Tests.AssemblyInfo.cs
+C:\Users\admin\source\LuxuryHotel_FullProject\Backend\lxrhotel.API.Tests\obj\Debug\net10.0\lxrhotel.API.Tests.csproj.CoreCompileInputs.cache
+C:\Users\admin\source\LuxuryHotel_FullProject\Backend\lxrhotel.API.Tests\obj\Debug\net10.0\lxrhotel.API.Tests.sourcelink.json

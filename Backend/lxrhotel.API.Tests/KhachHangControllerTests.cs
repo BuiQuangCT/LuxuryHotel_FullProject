@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -154,7 +154,8 @@ namespace lxrhotel.API.Tests
             var controller = new KhachHangController(context, _configuration, _mockEmailService.Object);
 
             // Act
-            var result = await controller.QuenMatKhau(email);
+            var request = new KhachHangController.QuenMatKhauRequest { Email = email };
+            var result = await controller.QuenMatKhau(request);
 
             // Assert
             result.Should().BeOfType<OkObjectResult>();

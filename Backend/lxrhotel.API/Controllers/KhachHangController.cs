@@ -103,8 +103,8 @@ namespace lxrhotel.API.Controllers
             {
                 Subject = new ClaimsIdentity(claims), 
                 Expires = DateTime.UtcNow.AddHours(2), 
-                Issuer = "LuxuryHotelAPI",
-                Audience = "LuxuryHotelClients",
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -174,12 +174,18 @@ namespace lxrhotel.API.Controllers
             await _context.SaveChangesAsync();
             return Ok(new { message = "Cập nhật hồ sơ thành công!" });
         }
-       
-        // UC04: QUÊN MẬT KHẨU
-     
-        [HttpPost("quen-mat-khau")]
-        public async Task<IActionResult> QuenMatKhau([FromBody] string email)
+
+        // Class DTO cho request quên mật khẩu
+        public class QuenMatKhauRequest
         {
+            public string Email { get; set; } = null!;
+        }
+
+        // UC04: QUÊN MẬT KHẨU
+        [HttpPost("quen-mat-khau")]
+        public async Task<IActionResult> QuenMatKhau([FromBody] QuenMatKhauRequest request)
+        {
+            var email = request.Email;
             var user = await _context.KhachHangs.SingleOrDefaultAsync(x => x.Email == email);
             if (user == null) return NotFound("Email không tồn tại trong hệ thống!");
 
