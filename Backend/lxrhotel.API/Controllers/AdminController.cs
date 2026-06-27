@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using lxrhotel.API.Models; 
@@ -21,7 +21,7 @@ namespace lxrhotel.API.Controllers
         // UC-ADMIN-01: CẬP NHẬT TRẠNG THÁI PHÒNG
        
         [HttpPut("cap-nhat-trang-thai/{maPhong}")]
-        public async Task<IActionResult> CapNhatTrangThaiPhong(string maPhong, [FromBody] string status)
+        public async Task<IActionResult> CapNhatTrangThaiPhong(string maPhong, [FromQuery] string trangThaiMoi)
         {
             var phong = await _context.Phongs.FindAsync(maPhong);
             if (phong == null)
@@ -30,10 +30,10 @@ namespace lxrhotel.API.Controllers
             }
 
           
-            phong.TrangThai = status;
+            phong.TrangThai = trangThaiMoi;
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = $"Đã cập nhật trạng thái phòng {maPhong} thành {status}." });
+            return Ok(new { message = $"Đã cập nhật trạng thái phòng {maPhong} thành {trangThaiMoi}." });
         }
 
         
@@ -42,14 +42,15 @@ namespace lxrhotel.API.Controllers
         [HttpGet("thong-ke-doanh-thu")]
         public async Task<IActionResult> ThongKeDoanhThu(int thang, int nam)
         {
-          
-            var doanhThu = await _context.GiaoDiches
-                .Where(gd => gd.ThoiGian.Value.Month == thang && gd.ThoiGian.Value.Year == nam && gd.TrangThai == "Success")
-                .SumAsync(gd => gd.SoTien);
+            // Sửa lại logic: Tính doanh thu từ bảng Đặt Cọc, nơi ghi nhận các giao dịch thanh toán thành công
+            var doanhThu = await _context.DatCocs
+                .Where(dc => dc.NgayDatCoc.Value.Month == thang && dc.NgayDatCoc.Value.Year == nam && dc.TrangThai == "Đã thanh toán")
+                .SumAsync(dc => (decimal?)dc.SoTienCoc) ?? 0; // Sử dụng (decimal?) để SumAsync hoạt động và ?? 0 để xử lý trường hợp không có giao dịch nào
 
-           
+
+            // Logic tính tổng đơn hàng giữ nguyên, vì nó đếm số đơn được *tạo* trong tháng
             var tongDonHang = await _context.DatPhongs
-                .CountAsync(dp => dp.NgayDat != null && dp.NgayDat.Value.Month == thang && dp.NgayDat.Value.Year == nam);
+                .CountAsync(dp => dp.NgayDat.Value.Month == thang && dp.NgayDat.Value.Year == nam);
 
             return Ok(new
             {
@@ -77,20 +78,37 @@ namespace lxrhotel.API.Controllers
         // UC-ADMIN-04: CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG 
         
         [HttpPut("cap-nhat-don/{maDatPhong}")]
-        public async Task<IActionResult> CapNhatTrangThaiDon(int maDatPhong, [FromBody] string status)
+        public async Task<IActionResult> CapNhatTrangThaiDon(int maDatPhong, [FromQuery] string status)
         {
             var don = await _context.DatPhongs.FindAsync(maDatPhong);
             if (don == null) return NotFound(new { message = "Không tìm thấy đơn đặt phòng." });
-
+ 
+            var oldStatus = don.TrangThai;
             don.TrangThai = status;
-
-           
-            if (status == "Success")
+ 
+            // Khi admin duyệt đơn thủ công (chuyển sang "Success"), ta cần ghi nhận giao dịch này
+            // để thống kê doanh thu được chính xác, tương tự như luồng thanh toán online.
+            if (status == "Success" && oldStatus == "Pending")
             {
-                var phong = await _context.Phongs.FindAsync(don.MaPhong);
-                if (phong != null) phong.TrangThai = "Đã đặt";
+                // Kiểm tra xem đã có bản ghi đặt cọc chưa để tránh tạo trùng lặp
+                var existingDatCoc = await _context.DatCocs.FirstOrDefaultAsync(dc => dc.MaDatPhong == maDatPhong);
+                if (existingDatCoc == null)
+                {
+                    var datCoc = new DatCoc
+                    {
+                        MaDatPhong = don.MaDatPhong,
+                        SoTienCoc = don.TongTien, // Giả định admin duyệt là đã thanh toán đủ
+                        TrangThai = "Đã thanh toán",
+                        NgayDatCoc = DateTime.Now
+                    };
+                    _context.DatCocs.Add(datCoc);
+                }
             }
-
+ 
+            // Xóa bỏ logic cũ: Việc thay đổi trạng thái phòng khi duyệt đơn là không chính xác.
+            // Trạng thái phòng (Trống, Đang sử dụng) nên được xác định động dựa trên ngày nhận/trả phòng
+            // của các đơn đã được xác nhận, chứ không nên gán cứng một trạng thái.
+ 
             await _context.SaveChangesAsync();
             return Ok(new { message = $"Đã cập nhật đơn #{maDatPhong} thành {status}" });
         }
@@ -105,6 +123,7 @@ namespace lxrhotel.API.Controllers
                 TenKhachSan = p.MaKsNavigation.TenKs,
                 p.LoaiPhong,
                 p.Gia,
+                p.SucChua,
                 p.TrangThai
             }).ToListAsync();
             return Ok(list);

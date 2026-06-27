@@ -13,16 +13,16 @@
       }
       body {
         display: flex;
-        background-color: #f8fafc; /* Nền xám trắng cao cấp */
+        background-color: #f8fafc;
         height: 100vh;
         overflow: hidden;
         color: #334155;
       }
 
-      /* --- CỘT MENU BÊN TRÁI (SIDEBAR) LUXURY --- */
+      /* --- CỘT MENU BÊN TRÁI (SIDEBAR) --- */
       .sidebar {
         width: 260px;
-        background-color: #1a2332; /* Xanh đen hoàng gia */
+        background-color: #1a2332;
         color: white;
         padding: 30px 0;
         display: flex;
@@ -31,7 +31,7 @@
       }
       .sidebar h2 {
         text-align: center;
-        color: #dfb73c; /* Vàng kim metallic */
+        color: #dfb73c;
         margin-bottom: 40px;
         font-size: 22px;
         letter-spacing: 3px;
@@ -63,7 +63,7 @@
         background-color: rgba(223, 183, 60, 0.1);
         color: #dfb73c;
         font-weight: 600;
-        border-left: 4px solid #dfb73c; /* Chỉ vàng định vị tab */
+        border-left: 4px solid #dfb73c;
       }
 
       /* --- VÙNG NỘI DUNG CHÍNH --- */
@@ -74,7 +74,7 @@
         overflow: hidden;
       }
 
-      /* THANH TOPBAR TRÊN CÙNG */
+      /* THANH TOPBAR */
       .topbar {
         background-color: white;
         padding: 15px 40px;
@@ -139,7 +139,7 @@
         }
       }
 
-      /* --- THIẾT KẾ CÁC THẺ CARD STATS (DASHBOARD) --- */
+      /* DASHBOARD STATS */
       .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -171,7 +171,7 @@
         color: #1e293b;
       }
 
-      /* --- THIẾT KẾ BẢNG DỮ LIỆU (TABLES) --- */
+      /* TABLES */
       .table-container {
         background: white;
         border-radius: 12px;
@@ -205,7 +205,7 @@
         background-color: #f8fafc;
       }
 
-      /* TRẠNG THÁI BADGES (MÀU PASTEL SANG TRỌNG) */
+      /* BADGES */
       .status-badge {
         padding: 5px 12px;
         border-radius: 20px;
@@ -226,7 +226,7 @@
         color: #991b1b;
       }
 
-      /* --- THIẾT KẾ NÚT BẤM (BUTTONS) --- */
+      /* BUTTONS */
       .btn-action {
         padding: 6px 14px;
         border: none;
@@ -253,7 +253,7 @@
         box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
       }
 
-      /* Form lọc dữ liệu */
+      /* FILTER BAR */
       .filter-bar {
         display: flex;
         gap: 15px;
@@ -405,7 +405,7 @@
         Authorization: "Bearer " + token,
       };
 
-      // Tự động load trang đầu tiên
+      // Khởi động load trang đầu tiên
       loadDashboard();
 
       function dangXuat() {
@@ -424,7 +424,6 @@
           .forEach((tab) => tab.classList.remove("active"));
         document.getElementById("tab-" + tabId).classList.add("active");
 
-        // Đổi tên Topbar động cho chuyên nghiệp
         const titles = {
           dashboard: "Tổng Quan Báo Cáo",
           bookings: "Quản Lý Đơn Đặt Phòng",
@@ -439,7 +438,7 @@
         if (tabId === "customers") loadCustomers();
       }
 
-      // API THỐNG KÊ (TAB 1)
+      // 1. API THỐNG KÊ DOANH THU
       async function loadDashboard() {
         const m = document.getElementById("thongKeThang").value;
         const y = document.getElementById("thongKeNam").value;
@@ -455,15 +454,15 @@
           }
           const data = await res.json();
           document.getElementById("txtDoanhThu").innerText =
-            data.tongDoanhThu.toLocaleString() + " VNĐ";
+            (data.tongDoanhThu || 0).toLocaleString() + " VNĐ";
           document.getElementById("txtTongDon").innerText =
-            data.tongSoDon + " Đơn";
+            data.soLuongDonHang + " Đơn";
         } catch (e) {
           console.error(e);
         }
       }
 
-      // API ĐƠN HÀNG (TAB 2)
+      // 2. API QUẢN LÝ ĐƠN HÀNG
       async function loadBookings() {
         try {
           const res = await fetch(`${API_BASE_URL}/danh-sach-dat-phong`, {
@@ -504,8 +503,7 @@
           )
         )
           return;
-        const res = await fetch(
-          `${API_BASE_URL}/cap-nhat-don?maDatPhong=${id}&status=${encodeURIComponent(status)}`,
+        const res = await fetch(`${API_BASE_URL}/cap-nhat-don/${id}?status=${encodeURIComponent(status)}`,
           {
             method: "PUT",
             headers: myHeaders,
@@ -517,10 +515,12 @@
         }
       }
 
-      // API PHÒNG (TAB 3)
+      // 3. API QUẢN LÝ PHÒNG
       async function loadRooms() {
         try {
-          const res = await fetch("https://localhost:7182/api/Phong");
+          const res = await fetch(`${API_BASE_URL}/danh-sach-phong`, {
+            headers: myHeaders,
+          });
           const data = await res.json();
           let html = "";
           data.forEach((p) => {
@@ -552,6 +552,7 @@
         }
       }
 
+      // HÀM ĐỔI TRẠNG THÁI PHÒNG (Đã được gộp 1 lần duy nhất, chuẩn logic)
       async function doiTrangThaiPhong(maPhong, trangThaiMoi) {
         if (!trangThaiMoi) return;
         const res = await fetch(
@@ -571,7 +572,7 @@
         }
       }
 
-      // API KHÁCH HÀNG (TAB 4)
+      // 4. API QUẢN LÝ KHÁCH HÀNG
       async function loadCustomers() {
         try {
           const res = await fetch(`${API_BASE_URL}/danh-sach-khach-hang`, {
@@ -587,7 +588,7 @@
                         <td>${k.email}</td>
                         <td>${k.soDienThoai || "-"}</td>
                         <td><span class="status-badge ${!isLocked ? "status-success" : "status-danger"}">${k.trangThai}</span></td>
-                        <td><button onclick="khoaTaiKhoan(${k.maKh})" class="btn-action ${isLocked ? "btn-approve" : "btn-cancel"}">${isLocked ? "Mở Khóa" : "Khóa đơn"}</button></td>
+                        <td><button onclick="khoaTaiKhoan(${k.maKh})" class="btn-action ${isLocked ? "btn-approve" : "btn-cancel"}">${isLocked ? "Mở Khóa" : "Khóa tài khoản"}</button></td>
                     </tr>`;
           });
           document.getElementById("bangKhach").innerHTML = html;
