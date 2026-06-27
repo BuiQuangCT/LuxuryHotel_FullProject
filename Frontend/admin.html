@@ -305,13 +305,8 @@
         <div id="tab-dashboard" class="tab-pane active">
           <div class="filter-bar">
             <label style="font-weight: 600">Thống kê theo thời gian:</label>
-            <select id="thongKeThang">
-              <option value="5">Tháng 5</option>
-              <option value="6">Tháng 6</option>
-            </select>
-            <select id="thongKeNam">
-              <option value="2026">Năm 2026</option>
-            </select>
+            <select id="thongKeThang"></select>
+            <select id="thongKeNam"></select>
             <button
               onclick="loadDashboard()"
               class="btn-action btn-approve"
@@ -329,6 +324,29 @@
             <div class="stat-card" style="border-top: 4px solid #10b981">
               <h3>Tổng Đơn Đặt Phòng</h3>
               <p id="txtTongDon">0 Đơn</p>
+            </div>
+          </div>
+
+          <div style="margin-top: 40px">
+            <h2
+              style="
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 20px;
+                color: #1e293b;
+              "
+            >
+              Các đơn đặt phòng gần đây
+            </h2>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Mã Đơn</th><th>Mã Phòng</th><th>Ngày Đặt</th><th>Tổng Tiền</th><th>Trạng Thái</th>
+                  </tr>
+                </thead>
+                <tbody id="bangDonHangGanDay"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -405,7 +423,35 @@
         Authorization: "Bearer " + token,
       };
 
-      // Khởi động load trang đầu tiên
+      // Hàm thiết lập bộ lọc thời gian cho dashboard
+      function setupDashboardFilters() {
+        const thangSelect = document.getElementById("thongKeThang");
+        const namSelect = document.getElementById("thongKeNam");
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1; // JS months are 0-11
+        const currentYear = now.getFullYear();
+
+        // Tạo các lựa chọn cho tháng
+        let monthOptions = "";
+        for (let i = 1; i <= 12; i++) {
+          monthOptions += `<option value="${i}" ${
+            i === currentMonth ? "selected" : ""
+          }>Tháng ${i}</option>`;
+        }
+        thangSelect.innerHTML = monthOptions;
+
+        // Tạo các lựa chọn cho năm (ví dụ: 3 năm gần nhất + năm hiện tại)
+        let yearOptions = "";
+        for (let i = currentYear; i >= currentYear - 3; i--) {
+          yearOptions += `<option value="${i}" ${
+            i === currentYear ? "selected" : ""
+          }>Năm ${i}</option>`;
+        }
+        namSelect.innerHTML = yearOptions;
+      }
+
+      // Thiết lập bộ lọc và tải dữ liệu lần đầu
+      setupDashboardFilters();
       loadDashboard();
 
       function dangXuat() {
@@ -438,27 +484,84 @@
         if (tabId === "customers") loadCustomers();
       }
 
-      // 1. API THỐNG KÊ DOANH THU
+      // 1. API THỐNG KÊ DOANH THU & ĐƠN HÀNG GẦN ĐÂY
       async function loadDashboard() {
         const m = document.getElementById("thongKeThang").value;
         const y = document.getElementById("thongKeNam").value;
+
+        // Hiển thị trạng thái đang tải
+        document.getElementById("txtDoanhThu").innerText = "Đang tải...";
+        document.getElementById("txtTongDon").innerText = "Đang tải...";
+        const recentBookingsBody = document.getElementById("bangDonHangGanDay");
+        recentBookingsBody.innerHTML =
+          '<tr><td colspan="5" style="text-align:center; padding: 20px;">Đang tải...</td></tr>';
+
         try {
-          const res = await fetch(
-            `${API_BASE_URL}/thong-ke-doanh-thu?thang=${m}&nam=${y}`,
-            { headers: myHeaders },
-          );
-          if (res.status === 403 || res.status === 401) {
+          // Gọi đồng thời API thống kê và API danh sách đơn hàng
+          const [statsRes, bookingsRes] = await Promise.all([
+            fetch(
+              `${API_BASE_URL}/thong-ke-doanh-thu?thang=${m}&nam=${y}`,
+              { headers: myHeaders, cache: "no-cache" },
+            ),
+            fetch(`${API_BASE_URL}/danh-sach-dat-phong`, {
+              headers: myHeaders,
+              // Thêm cache: 'no-cache' để đảm bảo dữ liệu luôn mới nhất
+              // và không bị trình duyệt lưu trữ phiên bản cũ.
+              cache: "no-cache",
+            }),
+          ]);
+
+          // Xử lý lỗi phân quyền (nếu có)
+          if (statsRes.status === 403 || statsRes.status === 401) {
             alert("Tài khoản của bạn không được phân quyền Admin!");
             window.location.href = "index.html";
             return;
           }
-          const data = await res.json();
-          document.getElementById("txtDoanhThu").innerText =
-            (data.tongDoanhThu || 0).toLocaleString() + " VNĐ";
-          document.getElementById("txtTongDon").innerText =
-            data.soLuongDonHang + " Đơn";
+
+          // Xử lý kết quả thống kê
+          if (statsRes.ok) {
+            const data = await statsRes.json();
+            document.getElementById("txtDoanhThu").innerText =
+              (data.tongDoanhThu || 0).toLocaleString() + " VNĐ";
+            document.getElementById("txtTongDon").innerText =
+              data.soLuongDonHang + " Đơn";
+          } else {
+            document.getElementById("txtDoanhThu").innerText = "Lỗi tải";
+            document.getElementById("txtTongDon").innerText = "Lỗi tải";
+          }
+
+          // Xử lý kết quả danh sách đơn hàng gần đây
+          if (bookingsRes.ok) {
+            const bookingsData = await bookingsRes.json();
+            let html = "";
+            const recentBookings = bookingsData.slice(0, 5); // Lấy 5 đơn mới nhất
+
+            if (recentBookings.length === 0) {
+              html =
+                '<tr><td colspan="5" style="text-align:center; padding: 20px;">Chưa có đơn đặt phòng nào.</td></tr>';
+            } else {
+              recentBookings.forEach((b) => {
+                let badgeClass = "status-pending";
+                let trangThaiDisplay = b.trangThai;
+                if (trangThaiDisplay === "Ðã h?y") trangThaiDisplay = "\u0110\u00e3 h\u1ee7y"; // Sửa lỗi hiển thị
+
+                if (b.trangThai === "Success" || b.trangThai === "Đã đặt cọc") { badgeClass = "status-success"; }
+                if (b.trangThai === "Đã hủy" || b.trangThai === "\u0110\u00e3 h\u1ee7y" || b.trangThai === "Failed" || b.trangThai === "Ðã h?y") { badgeClass = "status-danger"; }
+
+                html += `<tr><td><b>#${b.maDatPhong}</b></td><td>${b.maPhong}</td><td>${new Date(b.ngayDat).toLocaleString("vi-VN")}</td><td><span style="font-weight:600; color:#1e293b">${b.tongTien.toLocaleString()}đ</span></td><td><span class="status-badge ${badgeClass}">${trangThaiDisplay}</span></td></tr>`;
+              });
+            }
+            recentBookingsBody.innerHTML = html;
+          } else {
+            recentBookingsBody.innerHTML =
+              '<tr><td colspan="5" style="text-align:center; color:red; padding: 20px;">Lỗi tải danh sách đơn hàng.</td></tr>';
+          }
         } catch (e) {
           console.error(e);
+          document.getElementById("txtDoanhThu").innerText = "Lỗi kết nối";
+          document.getElementById("txtTongDon").innerText = "Lỗi kết nối";
+          recentBookingsBody.innerHTML =
+            '<tr><td colspan="5" style="text-align:center; color:red; padding: 20px;">Lỗi kết nối máy chủ.</td></tr>';
         }
       }
 
@@ -467,26 +570,32 @@
         try {
           const res = await fetch(`${API_BASE_URL}/danh-sach-dat-phong`, {
             headers: myHeaders,
+            // Thêm cache: 'no-cache' để đảm bảo dữ liệu luôn mới nhất
+            cache: "no-cache",
           });
           const data = await res.json();
           let html = "";
           data.forEach((b) => {
             let badgeClass = "status-pending";
-            if (b.trangThai === "Success" || b.trangThai === "Đã đặt cọc")
-              badgeClass = "status-success";
-            if (b.trangThai === "Đã hủy" || b.trangThai === "Failed")
-              badgeClass = "status-danger";
+            let trangThaiDisplay = b.trangThai;
+            if (trangThaiDisplay === "Ðã h?y") trangThaiDisplay = "\u0110\u00e3 h\u1ee7y"; // Sửa lỗi hiển thị
 
+            if (b.trangThai === "Success" || b.trangThai === "Đã đặt cọc")
+              { badgeClass = "status-success"; }
+            if (b.trangThai === "Đã hủy" || b.trangThai === "\u0110\u00e3 h\u1ee7y" || b.trangThai === "Failed" || b.trangThai === "Ðã h?y")
+              { badgeClass = "status-danger"; }
+
+            const isCancellableByAdmin = b.trangThai !== "Success" && b.trangThai !== "Đã hủy" && b.trangThai !== "\u0110\u00e3 h\u1ee7y" && b.trangThai !== "Ðã h?y";
             html += `<tr>
                         <td><b>#${b.maDatPhong}</b></td>
                         <td>${b.maPhong}</td>
                         <td>${new Date(b.ngayNhan).toLocaleDateString("vi-VN")}</td>
                         <td>${new Date(b.ngayTra).toLocaleDateString("vi-VN")}</td>
                         <td><span style="font-weight:600; color:#1e293b">${b.tongTien.toLocaleString()}đ</span></td>
-                        <td><span class="status-badge ${badgeClass}">${b.trangThai}</span></td>
+                        <td><span class="status-badge ${badgeClass}">${trangThaiDisplay}</span></td>
                         <td>
                             ${b.trangThai === "Pending" ? `<button onclick="duyetDon(${b.maDatPhong}, 'Success')" class="btn-action btn-approve" style="margin-right:5px">Duyệt</button>` : ""}
-                            ${b.trangThai !== "Đã hủy" ? `<button onclick="duyetDon(${b.maDatPhong}, 'Đã hủy')" class="btn-action btn-cancel">Hủy</button>` : "-"}
+                            ${isCancellableByAdmin ? `<button onclick="duyetDon(${b.maDatPhong}, '\u0110\u00e3 h\u1ee7y')" class="btn-action btn-cancel">H\u1ee7y</button>` : "-"}
                         </td>
                      </tr>`;
           });
@@ -520,6 +629,7 @@
         try {
           const res = await fetch(`${API_BASE_URL}/danh-sach-phong`, {
             headers: myHeaders,
+            cache: "no-cache",
           });
           const data = await res.json();
           let html = "";
@@ -577,6 +687,7 @@
         try {
           const res = await fetch(`${API_BASE_URL}/danh-sach-khach-hang`, {
             headers: myHeaders,
+            cache: "no-cache",
           });
           const data = await res.json();
           let html = "";

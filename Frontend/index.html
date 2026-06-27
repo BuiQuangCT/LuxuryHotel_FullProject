@@ -791,8 +791,10 @@
               '<tr><td colspan="6" style="text-align:center; padding:20px;">Bạn chưa có đơn đặt phòng nào.</td></tr>';
           } else {
             data.forEach((item) => {
-              const isCancellable =
-                item.trangThai !== "Success" && item.trangThai !== "Đã hủy";
+              const isCancellable = item.trangThai !== "Success" && item.trangThai !== "Đã hủy" && item.trangThai !== "\u0110\u00e3 h\u1ee7y" && item.trangThai !== "Ðã h?y";
+              let trangThaiDisplay = item.trangThai;
+              if (trangThaiDisplay === "Ðã h?y") trangThaiDisplay = "\u0110\u00e3 h\u1ee7y"; // Sửa lỗi hiển thị
+
               html += `
                           <tr>
                               <td style="padding:12px; border-bottom:1px solid #eee;">#${item.maDatPhong}</td>
@@ -800,12 +802,12 @@
                               <td style="padding:12px; border-bottom:1px solid #eee;">${new Date(item.ngayNhan).toLocaleDateString("vi-VN")} - ${new Date(item.ngayTra).toLocaleDateString("vi-VN")}</td>
                               <td style="padding:12px; border-bottom:1px solid #eee; font-weight:bold;">${item.tongTien.toLocaleString()}đ</td>
                               <td style="padding:12px; border-bottom:1px solid #eee;">
-                                  <span style="padding:4px 8px; border-radius:4px; font-size:12px; color:white; background:${item.trangThai === "Success" ? "#2ecc71" : item.trangThai === "Đã hủy" ? "#e74c3c" : "#f39c12"}">
-                                      ${item.trangThai}
+                                  <span style="padding:4px 8px; border-radius:4px; font-size:12px; color:white; background:${item.trangThai === "Success" ? "#2ecc71" : (item.trangThai === "Đã hủy" || item.trangThai === "\u0110\u00e3 h\u1ee7y" || item.trangThai === "Ðã h?y") ? "#e74c3c" : "#f39c12"}">
+                                      ${trangThaiDisplay}
                                   </span>
                               </td>
                               <td style="padding:12px; border-bottom:1px solid #eee;">
-                                  ${isCancellable ? `<button onclick="huyDon(${item.maDatPhong})" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Hủy đơn</button>` : "-"}
+                                  ${isCancellable ? `<button onclick="huyDon(${item.maDatPhong})" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">H\u1ee7y \u0111\u01a1n</button>` : "-"}
                               </td>
                           </tr>
                       `;

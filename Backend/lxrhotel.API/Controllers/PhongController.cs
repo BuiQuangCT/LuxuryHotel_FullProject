@@ -37,7 +37,10 @@ namespace lxrhotel.API.Controllers
             if (ngayNhan >= ngayTra) return BadRequest("Ngày nhận phải trước ngày trả.");
 
             var phongTrong = _context.Phongs
-                .Where(p => p.MaKsNavigation.DiaDiem.Contains(diaDiem) && p.SucChua >= soNguoi)
+                // CHỈNH SỬA: Thêm điều kiện kiểm tra trạng thái phòng phải là "Trống" hoặc "Sẵn sàng"
+                .Where(p => (p.TrangThai == "Trống" || p.TrangThai == "Sẵn sàng") && 
+                            p.MaKsNavigation.DiaDiem.Contains(diaDiem) && 
+                            p.SucChua >= soNguoi)
                 .Where(p => !p.DatPhongs.Any(dp =>
                     dp.TrangThai != "Đã hủy" &&
                     dp.NgayNhan < ngayTra &&
@@ -64,6 +67,8 @@ namespace lxrhotel.API.Controllers
             
             var ketQua = await _context.Phongs
                 .FromSqlInterpolated($"EXEC sp_TimKiemPhong @DiaDiem={diaDiem}, @NgayNhan={ngayNhan}, @NgayTra={ngayTra}, @SoNguoi={soNguoi}")
+                // CHỈNH SỬA: Thêm điều kiện lọc sau khi thực thi Stored Procedure
+                .Where(p => p.TrangThai == "Trống" || p.TrangThai == "Sẵn sàng")
                 .Select(p => new {
                     p.MaPhong,
                     TenKhachSan = p.MaKsNavigation.TenKs,

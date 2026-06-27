@@ -29,7 +29,21 @@ namespace lxrhotel.API.Controllers
                 return NotFound(new { message = "Không tìm thấy phòng này." });
             }
 
-          
+            // LOGIC MỚI: Kiểm tra xem phòng có đang được sử dụng không
+            var today = DateTime.Now.Date;
+            var isOccupied = await _context.DatPhongs.AnyAsync(dp => 
+                dp.MaPhong == maPhong &&
+                dp.TrangThai == "Success" &&
+                dp.NgayNhan.Date <= today &&
+                dp.NgayTra.Date > today
+            );
+
+            if (isOccupied)
+            {
+                // Nếu phòng đang có khách, không cho phép thay đổi và trả về lỗi
+                return BadRequest("Không thể thay đổi trạng thái. Phòng này hiện đang có khách ở.");
+            }
+            
             phong.TrangThai = trangThaiMoi;
             await _context.SaveChangesAsync();
 
@@ -42,21 +56,23 @@ namespace lxrhotel.API.Controllers
         [HttpGet("thong-ke-doanh-thu")]
         public async Task<IActionResult> ThongKeDoanhThu(int thang, int nam)
         {
-            // Sửa lại logic: Tính doanh thu từ bảng Đặt Cọc, nơi ghi nhận các giao dịch thanh toán thành công
-            var doanhThu = await _context.DatCocs
-                .Where(dc => dc.NgayDatCoc.Value.Month == thang && dc.NgayDatCoc.Value.Year == nam && dc.TrangThai == "Đã thanh toán")
-                .SumAsync(dc => (decimal?)dc.SoTienCoc) ?? 0; // Sử dụng (decimal?) để SumAsync hoạt động và ?? 0 để xử lý trường hợp không có giao dịch nào
+       // Cải tiến: Lấy tất cả đơn hàng thành công trong kỳ để tính toán, đảm bảo sự đồng bộ.
+            var successfulBookingsInPeriod = await (from dp in _context.DatPhongs
+                                                    join dc in _context.DatCocs on dp.MaDatPhong equals dc.MaDatPhong
+                                                    where dc.NgayDatCoc.Value.Month == thang &&
+                                                          dc.NgayDatCoc.Value.Year == nam &&
+                                                          dp.TrangThai == "Success"
+                                                    select dp).ToListAsync();
 
-
-            // Logic tính tổng đơn hàng giữ nguyên, vì nó đếm số đơn được *tạo* trong tháng
-            var tongDonHang = await _context.DatPhongs
-                .CountAsync(dp => dp.NgayDat.Value.Month == thang && dp.NgayDat.Value.Year == nam);
+            // Tính toán từ danh sách đã lọc
+            var doanhThu = successfulBookingsInPeriod.Sum(dp => dp.TongTien);
+            var soLuongDonHangThanhCong = successfulBookingsInPeriod.Count();
 
             return Ok(new
             {
                 thoiGian = $"{thang}/{nam}",
-                tongDoanhThu = doanhThu,
-                soLuongDonHang = tongDonHang,
+                tongDoanhThu = doanhThu, // Tổng doanh thu từ các đơn thành công trong kỳ
+                soLuongDonHang = soLuongDonHangThanhCong, // Số lượng đơn hàng thành công trong kỳ
                 donVi = "VND"
             });
         }
@@ -118,15 +134,45 @@ namespace lxrhotel.API.Controllers
         [HttpGet("danh-sach-phong")]
         public async Task<IActionResult> GetDanhSachPhong()
         {
-            var list = await _context.Phongs.Select(p => new {
-                p.MaPhong,
-                TenKhachSan = p.MaKsNavigation.TenKs,
-                p.LoaiPhong,
-                p.Gia,
-                p.SucChua,
-                p.TrangThai
-            }).ToListAsync();
-            return Ok(list);
+            // Lấy tất cả các phòng và thông tin khách sạn liên quan
+            var allRooms = await _context.Phongs
+                .Include(p => p.MaKsNavigation)
+                .ToListAsync();
+
+            var today = DateTime.Now.Date;
+
+            // Lấy mã của tất cả các phòng đang được sử dụng HÔM NAY
+            var occupiedRoomIds = await _context.DatPhongs
+                .Where(dp => dp.TrangThai == "Success" && dp.NgayNhan.Date <= today && dp.NgayTra.Date > today)
+                .Select(dp => dp.MaPhong)
+                .Distinct() // Đảm bảo không có mã phòng trùng lặp
+                .ToListAsync();
+
+            // Xử lý logic để xác định trạng thái cuối cùng
+            var result = allRooms.Select(p => {
+                string finalStatus;
+                if (occupiedRoomIds.Contains(p.MaPhong))
+                {
+                    // Nếu phòng có trong danh sách đang sử dụng, trạng thái là "Đang sử dụng"
+                    finalStatus = "Đang sử dụng";
+                }
+                else
+                {
+                    // Ngược lại, lấy trạng thái từ DB (Trống, Bảo trì, Đang dọn dẹp)
+                    finalStatus = p.TrangThai;
+                }
+
+                return new {
+                    p.MaPhong,
+                    TenKhachSan = p.MaKsNavigation.TenKs,
+                    p.LoaiPhong,
+                    p.Gia,
+                    p.SucChua,
+                    TrangThai = finalStatus
+                };
+            }).ToList();
+
+            return Ok(result);
         }
 
         // LẤY DANH SÁCH KHÁCH HÀNG 

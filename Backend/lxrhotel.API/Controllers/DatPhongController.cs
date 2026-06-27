@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿using Microsoft.AspNetCore.Mvc;
 using lxrhotel.API.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -82,10 +82,10 @@ namespace lxrhotel.API.Controllers
             if (don == null) return NotFound("Không tìm thấy đơn hàng.");
 
            
-            if (don.TrangThai == "Success" || don.TrangThai == "Đã hủy")
+            if (don.TrangThai == "Success" || don.TrangThai == "Đã hủy" || don.TrangThai == "\u0110\u00e3 h\u1ee7y")
                 return BadRequest("Không thể hủy đơn hàng ở trạng thái này.");
 
-            don.TrangThai = "Đã hủy";
+            don.TrangThai = "\u0110\u00e3 h\u1ee7y"; // "Đã hủy"
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Đã hủy đơn đặt phòng thành công." });
