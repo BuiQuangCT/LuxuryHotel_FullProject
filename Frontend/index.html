@@ -79,8 +79,12 @@
       }
       .user-info {
         display: none;
-        font-weight: bold;
+        font-weight: 600;
         color: #d4af37;
+        transition: color 0.3s;
+      }
+      .user-info:hover {
+        color: #fff;
       }
       .btn-logout {
         display: none;
@@ -248,12 +252,23 @@
         </li>
         <li><a href="#danh-sach-phong">Hạng phòng</a></li>
         <li><a href="#lien-he">Liên hệ</a></li>
-        <li onclick="openHistory()">Lịch sử đặt phòng</li>
+        <li id="navHistory" onclick="openHistory()" style="display: none">
+          Lịch sử đặt phòng
+        </li>
+        <li id="navProfile" style="display: none">
+          <a href="profile.html">Hồ sơ của tôi</a>
+        </li>
       </ul>
 
       <div class="user-section">
         <a href="login.html" id="btnLogin" class="btn-login">Đăng Nhập</a>
-        <span id="userInfo" class="user-info">Xin chào, Khách</span>
+        <a
+          href="profile.html"
+          id="userInfo"
+          class="user-info"
+          style="text-decoration: none"
+          >Xin chào, Khách</a
+        >
         <button id="btnLogout" class="btn-logout" onclick="dangXuat()">
           Đăng xuất
         </button>
@@ -547,6 +562,8 @@
         document.getElementById("btnLogin").style.display = "none";
         document.getElementById("userInfo").style.display = "block";
         document.getElementById("btnLogout").style.display = "block";
+        document.getElementById("navHistory").style.display = "block";
+        document.getElementById("navProfile").style.display = "block";
 
         try {
           const payload = JSON.parse(atob(token.split(".")[1]));

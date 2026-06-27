@@ -1,4 +1,4 @@
-﻿using BCrypt.Net;
+﻿﻿using BCrypt.Net;
 using lxrhotel.API.Models; 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using lxrhotel.API.Services;
 
 namespace lxrhotel.API.Controllers
 {
@@ -15,10 +16,12 @@ namespace lxrhotel.API.Controllers
     public class KhachHangController : ControllerBase
     {
         private readonly LuxuryHotelContext _context;
+        private readonly IConfiguration _configuration;
 
-        public KhachHangController(LuxuryHotelContext context)
+        public KhachHangController(LuxuryHotelContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         // 1. API Đăng ký tài khoản
@@ -93,7 +96,7 @@ namespace lxrhotel.API.Controllers
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes("LXR_Hotel_Super_Secret_Key_At_Least_32_Chars_Long_2026!!!");
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims), 
@@ -181,12 +184,23 @@ namespace lxrhotel.API.Controllers
          
             string newPassword = "LXR" + new Random().Next(100000, 999999).ToString();
 
-       
+            // Gửi mật khẩu mới qua email thay vì trả về trong API
+            // Lưu ý: Trong thực tế, EmailService nên được inject qua DI thay vì new()
+            try
+            {
+                var emailService = new EmailService();
+                await emailService.SendNewPasswordAsync(user.Email, user.HoTen, newPassword);
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi gửi mail nếu cần
+                return StatusCode(500, "Không thể gửi email cấp lại mật khẩu vào lúc này. Vui lòng thử lại sau.");
+            }
+
             user.MatKhau = BCrypt.Net.BCrypt.HashPassword(newPassword);
             await _context.SaveChangesAsync();
-
-          
-            return Ok(new { message = "Đã cấp mật khẩu mới.", matKhauMoi = newPassword });
+            
+            return Ok(new { message = "Một mật khẩu mới đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư." });
         }
     }
 }
