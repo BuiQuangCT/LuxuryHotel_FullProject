@@ -57,7 +57,7 @@ namespace lxrhotel.API.Tests
         {
             // Arrange
             var context = CreateContext();
-            var booking = new DatPhong { MaDatPhong = 1, TrangThai = "Pending" };
+            var booking = new DatPhong { MaDatPhong = 1, MaKh = 1, MaPhong = "P101", TrangThai = "Pending" };
             context.DatPhongs.Add(booking);
             await context.SaveChangesAsync();
             var controller = new DatPhongController(context);
@@ -79,7 +79,7 @@ namespace lxrhotel.API.Tests
         {
             // Arrange
             var context = CreateContext();
-            var booking = new DatPhong { MaDatPhong = 1, TrangThai = initialStatus };
+            var booking = new DatPhong { MaDatPhong = 1, MaKh = 1, MaPhong = "P101", TrangThai = initialStatus };
             context.DatPhongs.Add(booking);
             await context.SaveChangesAsync();
             var controller = new DatPhongController(context);
