@@ -342,7 +342,11 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Mã Đơn</th><th>Mã Phòng</th><th>Ngày Đặt</th><th>Tổng Tiền</th><th>Trạng Thái</th>
+                    <th>Mã Đơn</th>
+                    <th>Mã Phòng</th>
+                    <th>Ngày Đặt</th>
+                    <th>Tổng Tiền</th>
+                    <th>Trạng Thái</th>
                   </tr>
                 </thead>
                 <tbody id="bangDonHangGanDay"></tbody>
@@ -352,11 +356,21 @@
         </div>
 
         <div id="tab-bookings" class="tab-pane">
+          <div class="filter-bar">
+            <input type="text" id="bookingSearch" oninput="applyBookingFilters()" placeholder="Tìm theo mã đơn, tên, SĐT..." style="width: 280px;">
+            <select id="bookingStatusFilter" onchange="applyBookingFilters()">
+              <option value="">Tất cả trạng thái</option>
+              <option value="Pending">Pending (Chờ TT)</option>
+              <option value="Success">Success (Đã cọc)</option>
+              <option value="Đã hủy">Đã hủy</option>
+            </select>
+          </div>
           <div class="table-container">
             <table>
               <thead>
                 <tr>
                   <th>Mã Đơn</th>
+                  <th>Tên khách hàng</th>
                   <th>Mã Phòng</th>
                   <th>Ngày Nhận</th>
                   <th>Ngày Trả</th>
@@ -376,6 +390,7 @@
               <thead>
                 <tr>
                   <th>Mã Phòng</th>
+                  <th>Khách sạn</th>
                   <th>Loại Phòng</th>
                   <th>Giá / Đêm</th>
                   <th>Sức Chứa</th>
@@ -472,7 +487,7 @@
 
         const titles = {
           dashboard: "Tổng Quan Báo Cáo",
-          bookings: "Quản Lý Đơn Đặt Phòng",
+          bookings: "Quản Lý Đön Đặt Phòng",
           rooms: "Quản Lý Trạng Thái Phòng",
           customers: "Quản Lý Tài Khoản Khách",
         };
@@ -499,10 +514,10 @@
         try {
           // Gọi đồng thời API thống kê và API danh sách đơn hàng
           const [statsRes, bookingsRes] = await Promise.all([
-            fetch(
-              `${API_BASE_URL}/thong-ke-doanh-thu?thang=${m}&nam=${y}`,
-              { headers: myHeaders, cache: "no-cache" },
-            ),
+            fetch(`${API_BASE_URL}/thong-ke-doanh-thu?thang=${m}&nam=${y}`, {
+              headers: myHeaders,
+              cache: "no-cache",
+            }),
             fetch(`${API_BASE_URL}/danh-sach-dat-phong`, {
               headers: myHeaders,
               // Thêm cache: 'no-cache' để đảm bảo dữ liệu luôn mới nhất
@@ -543,10 +558,20 @@
               recentBookings.forEach((b) => {
                 let badgeClass = "status-pending";
                 let trangThaiDisplay = b.trangThai;
-                if (trangThaiDisplay === "Ðã h?y") trangThaiDisplay = "\u0110\u00e3 h\u1ee7y"; // Sửa lỗi hiển thị
+                if (trangThaiDisplay === "Ðã h?y")
+                  trangThaiDisplay = "\u0110\u00e3 h\u1ee7y"; // Sửa lỗi hiển thị
 
-                if (b.trangThai === "Success" || b.trangThai === "Đã đặt cọc") { badgeClass = "status-success"; }
-                if (b.trangThai === "Đã hủy" || b.trangThai === "\u0110\u00e3 h\u1ee7y" || b.trangThai === "Failed" || b.trangThai === "Ðã h?y") { badgeClass = "status-danger"; }
+                if (b.trangThai === "Success" || b.trangThai === "Đã đặt cọc") {
+                  badgeClass = "status-success";
+                }
+                if (
+                  b.trangThai === "Đã hủy" ||
+                  b.trangThai === "\u0110\u00e3 h\u1ee7y" ||
+                  b.trangThai === "Failed" ||
+                  b.trangThai === "Ðã h?y"
+                ) {
+                  badgeClass = "status-danger";
+                }
 
                 html += `<tr><td><b>#${b.maDatPhong}</b></td><td>${b.maPhong}</td><td>${new Date(b.ngayDat).toLocaleString("vi-VN")}</td><td><span style="font-weight:600; color:#1e293b">${b.tongTien.toLocaleString()}đ</span></td><td><span class="status-badge ${badgeClass}">${trangThaiDisplay}</span></td></tr>`;
               });
@@ -565,62 +590,116 @@
         }
       }
 
+      let allBookings = []; // To store all bookings for client-side filtering
+
       // 2. API QUẢN LÝ ĐƠN HÀNG
       async function loadBookings() {
         try {
           const res = await fetch(`${API_BASE_URL}/danh-sach-dat-phong`, {
             headers: myHeaders,
-            // Thêm cache: 'no-cache' để đảm bảo dữ liệu luôn mới nhất
             cache: "no-cache",
           });
-          const data = await res.json();
+          allBookings = await res.json();
+          renderBookings(allBookings); // Render all bookings initially
+        } catch (e) {
+          console.error(e);
+          document.getElementById("bangDonHang").innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">Lỗi tải dữ liệu.</td></tr>`;
+        }
+      }
+
+      function applyBookingFilters() {
+        const searchTerm = document.getElementById('bookingSearch').value.toLowerCase();
+        const statusFilter = document.getElementById('bookingStatusFilter').value;
+
+        const filteredBookings = allBookings.filter(b => {
+            const searchMatch = searchTerm === '' ||
+                                b.maDatPhong.toString().includes(searchTerm) ||
+                                b.tenKhachHang.toLowerCase().includes(searchTerm) ||
+                                (b.soDienThoai && b.soDienThoai.includes(searchTerm));
+
+            let statusMatch = statusFilter === '' || b.trangThai === statusFilter;
+            // Handle inconsistent "Đã hủy" statuses from DB
+            if (statusFilter === 'Đã hủy') {
+                statusMatch = b.trangThai === 'Đã hủy' || b.trangThai === 'Ðã h?y';
+            }
+
+
+            return searchMatch && statusMatch;
+        });
+
+        renderBookings(filteredBookings);
+      }
+
+      function renderBookings(bookings) {
           let html = "";
-          data.forEach((b) => {
+          if (bookings.length === 0) {
+              document.getElementById("bangDonHang").innerHTML = `<tr><td colspan="8" style="text-align: center;">Không tìm thấy đơn đặt phòng nào.</td></tr>`;
+              return;
+          }
+
+          bookings.forEach((b) => {
             let badgeClass = "status-pending";
             let trangThaiDisplay = b.trangThai;
-            if (trangThaiDisplay === "Ðã h?y") trangThaiDisplay = "\u0110\u00e3 h\u1ee7y"; // Sửa lỗi hiển thị
 
-            if (b.trangThai === "Success" || b.trangThai === "Đã đặt cọc")
-              { badgeClass = "status-success"; }
-            if (b.trangThai === "Đã hủy" || b.trangThai === "\u0110\u00e3 h\u1ee7y" || b.trangThai === "Failed" || b.trangThai === "Ðã h?y")
-              { badgeClass = "status-danger"; }
+            // Handle encoding issues and map statuses to colors
+            if (trangThaiDisplay === "Ðã h?y") trangThaiDisplay = "Đã hủy";
+            if (b.trangThai === "Success" || b.trangThai === "Đã đặt cọc") { badgeClass = "status-success"; }
+            if (b.trangThai === "Đã hủy" || b.trangThai === "Failed" || b.trangThai === "Ðã h?y") { badgeClass = "status-danger"; }
 
-            const isCancellableByAdmin = b.trangThai !== "Success" && b.trangThai !== "Đã hủy" && b.trangThai !== "\u0110\u00e3 h\u1ee7y" && b.trangThai !== "Ðã h?y";
+
+            let actionButtons = '-';
+            if (b.trangThai === 'Pending') {
+                actionButtons = `
+                    <button onclick="approveDon(${b.maDatPhong})" class="btn-action btn-approve" style="margin-right:5px">Duyệt</button>
+                    <button onclick="cancelDon(${b.maDatPhong})" class="btn-action btn-cancel">Hủy</button>
+                `;
+            }
+
             html += `<tr>
                         <td><b>#${b.maDatPhong}</b></td>
+                        <td>${b.tenKhachHang}</td>
                         <td>${b.maPhong}</td>
                         <td>${new Date(b.ngayNhan).toLocaleDateString("vi-VN")}</td>
                         <td>${new Date(b.ngayTra).toLocaleDateString("vi-VN")}</td>
                         <td><span style="font-weight:600; color:#1e293b">${b.tongTien.toLocaleString()}đ</span></td>
                         <td><span class="status-badge ${badgeClass}">${trangThaiDisplay}</span></td>
-                        <td>
-                            ${b.trangThai === "Pending" ? `<button onclick="duyetDon(${b.maDatPhong}, 'Success')" class="btn-action btn-approve" style="margin-right:5px">Duyệt</button>` : ""}
-                            ${isCancellableByAdmin ? `<button onclick="duyetDon(${b.maDatPhong}, '\u0110\u00e3 h\u1ee7y')" class="btn-action btn-cancel">H\u1ee7y</button>` : "-"}
-                        </td>
+                        <td>${actionButtons}</td>
                      </tr>`;
           });
           document.getElementById("bangDonHang").innerHTML = html;
-        } catch (e) {
-          console.error(e);
+      }
+      
+      async function approveDon(id) {
+        if (!confirm(`Xác nhận DUYỆT đơn hàng #${id}?`)) return;
+        
+        const res = await fetch(`${API_BASE_URL}/duyet-don/${id}`, {
+            method: "PUT",
+            headers: myHeaders,
+        });
+
+        if (res.ok) {
+            showToast("Duyệt đơn thành công!");
+            loadBookings(); // Reload data
+        } else {
+            const err = await res.json();
+            showToast("Lỗi: " + (err.message || "Không thể duyệt đơn."), true);
         }
       }
 
-      async function duyetDon(id, status) {
-        if (
-          !confirm(
-            `Xác nhận thay đổi trạng thái đơn số #${id} thành: ${status}?`,
-          )
-        )
-          return;
-        const res = await fetch(`${API_BASE_URL}/cap-nhat-don/${id}?status=${encodeURIComponent(status)}`,
-          {
+      async function cancelDon(id) {
+        if (!confirm(`Bạn có chắc chắn muốn HỦY đơn hàng #${id}?`)) return;
+
+        const res = await fetch(`${API_BASE_URL}/huy-don/${id}`, {
             method: "PUT",
             headers: myHeaders,
-          },
-        );
+        });
+
         if (res.ok) {
-          alert("Cập nhật trạng thái đơn đặt phòng thành công!");
-          loadBookings();
+            showToast("Hủy đơn thành công!");
+            loadBookings(); // Reload data
+        } else {
+            const err = await res.json();
+            showToast("Lỗi: " + (err.message || "Không thể hủy đơn."), true);
         }
       }
 
@@ -635,24 +714,33 @@
           let html = "";
           data.forEach((p) => {
             const isSelectDisabled = p.trangThai === "Đang sử dụng";
+            const currentStatus = p.trangThai;
+            // Define options
+            const options = [
+                { value: "Trống", text: "Trống (Sẵn sàng)"},
+                { value: "Bảo trì", text: "Bảo trì"},
+                { value: "Đang dọn dẹp", text: "Đang dọn dẹp"}
+            ];
+            
+            let selectOptions = options.map(opt => `<option value="${opt.value}" ${currentStatus === opt.value ? 'selected' : ''}>${opt.text}</option>`).join('');
+
             html += `<tr>
                         <td><b>${p.maPhong}</b></td>
+                        <td>${p.tenKhachSan}</td>
                         <td>${p.loaiPhong}</td>
                         <td>${p.gia.toLocaleString()}đ</td>
                         <td>${p.sucChua} Người</td>
                         <td>
-                          <span class="status-badge ${p.trangThai === "Sẵn sàng" || p.trangThai === "Trống" ? "status-success" : p.trangThai === "Bảo trì" ? "status-danger" : "status-pending"}">
+                          <span id="status-label-${p.maPhong}" class="status-badge ${p.trangThai === "Sẵn sàng" || p.trangThai === "Trống" ? "status-success" : p.trangThai === "Bảo trì" ? "status-danger" : "status-pending"}">
                             ${p.trangThai}
                           </span>
                         </td>
-                        <td>
-                            <select onchange="doiTrangThaiPhong('${p.maPhong}', this.value)" ${isSelectDisabled ? "disabled" : ""} style="padding:6px; border-radius:4px; border:1px solid #cbd5e1;">
-                                <option value="">-- Chọn --</option>
-                                <option value="Trống">Trống</option>
-                                <option value="Bảo trì">Bảo trì</option>
-                                <option value="Đang dọn dẹp">Đang dọn dẹp</option>
+                        <td style="display: flex; gap: 10px; align-items: center;">
+                            <select id="status-select-${p.maPhong}" onchange="checkTrangThaiPhongChanged('${p.maPhong}', '${currentStatus}')" ${isSelectDisabled ? "disabled" : ""} style="padding:6px; border-radius:4px; border:1px solid #cbd5e1;">
+                                ${selectOptions}
                             </select>
-                            ${isSelectDisabled ? '<span style="font-size:11px; color:#ef4444; display:block; margin-top:4px;">Cần check-out trước</span>' : ""}
+                            <button id="save-btn-${p.maPhong}" onclick="luuTrangThaiPhong('${p.maPhong}')" class="btn-action btn-approve" disabled>Lưu</button>
+                            ${isSelectDisabled ? '<span style="font-size:11px; color:#ef4444; display:block; margin-top:4px;">Có khách ở</span>' : ""}
                         </td>
                     </tr>`;
           });
@@ -662,9 +750,22 @@
         }
       }
 
-      // HÀM ĐỔI TRẠNG THÁI PHÒNG (Đã được gộp 1 lần duy nhất, chuẩn logic)
-      async function doiTrangThaiPhong(maPhong, trangThaiMoi) {
+      function checkTrangThaiPhongChanged(maPhong, currentStatus) {
+          const select = document.getElementById(`status-select-${maPhong}`);
+          const saveBtn = document.getElementById(`save-btn-${maPhong}`);
+          if (select.value !== currentStatus) {
+              saveBtn.disabled = false;
+          } else {
+              saveBtn.disabled = true;
+          }
+      }
+
+      async function luuTrangThaiPhong(maPhong) {
+        const select = document.getElementById(`status-select-${maPhong}`);
+        const trangThaiMoi = select.value;
+        
         if (!trangThaiMoi) return;
+
         const res = await fetch(
           `${API_BASE_URL}/cap-nhat-trang-thai/${maPhong}?trangThaiMoi=${encodeURIComponent(trangThaiMoi)}`,
           {
@@ -673,13 +774,62 @@
           },
         );
         if (res.ok) {
-          alert("Cập nhật trạng thái phòng thành công!");
-          loadRooms();
+          // Instead of a full reload, just update the UI for this row
+          const saveBtn = document.getElementById(`save-btn-${maPhong}`);
+          saveBtn.disabled = true;
+
+          const statusLabel = document.getElementById(`status-label-${maPhong}`);
+          statusLabel.textContent = trangThaiMoi;
+          
+          // Update class for color
+          statusLabel.className = 'status-badge'; // reset classes
+          let badgeClass = 'status-pending';
+          if (trangThaiMoi === "Sẵn sàng" || trangThaiMoi === "Trống") badgeClass = 'status-success';
+          if (trangThaiMoi === "Bảo trì") badgeClass = 'status-danger';
+          statusLabel.classList.add(badgeClass);
+
+          // Update the "currentStatus" for the onchange event
+          select.setAttribute('onchange', `checkTrangThaiPhongChanged('${maPhong}', '${trangThaiMoi}')`);
+          
+          showToast("Cập nhật trạng thái phòng thành công!");
+          
         } else {
-          const err = await res.text();
-          alert("Lỗi: " + err);
-          loadRooms();
+          const errData = await res.json();
+          showToast("Lỗi: " + (errData.message || "Không thể cập nhật"), true);
         }
+      }
+
+      // Simple Toast Notification System
+      function showToast(message, isError = false) {
+          let toast = document.getElementById('toast-notification');
+          if (!toast) {
+              toast = document.createElement('div');
+              toast.id = 'toast-notification';
+              document.body.appendChild(toast);
+              toast.style.cssText = `
+                  position: fixed;
+                  bottom: 20px;
+                  right: 20px;
+                  padding: 15px 25px;
+                  border-radius: 8px;
+                  color: white;
+                  font-weight: 500;
+                  z-index: 1000;
+                  opacity: 0;
+                  transition: opacity 0.4s, transform 0.4s;
+                  transform: translateY(20px);
+              `;
+          }
+
+          toast.textContent = message;
+          toast.style.backgroundColor = isError ? '#ef4444' : '#10b981';
+          toast.style.opacity = 1;
+          toast.style.transform = 'translateY(0)';
+
+          setTimeout(() => {
+              toast.style.opacity = 0;
+              toast.style.transform = 'translateY(20px)';
+          }, 3000);
       }
 
       // 4. API QUẢN LÝ KHÁCH HÀNG

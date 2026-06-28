@@ -41,7 +41,7 @@ namespace lxrhotel.API.Controllers
             if (isOccupied)
             {
                 // Nếu phòng đang có khách, không cho phép thay đổi và trả về lỗi
-                return BadRequest("Không thể thay đổi trạng thái. Phòng này hiện đang có khách ở.");
+                return BadRequest(new { message = "Phòng đang có người, yêu cầu Check-out trước" });
             }
             
             phong.TrangThai = trangThaiMoi;
@@ -85,48 +85,104 @@ namespace lxrhotel.API.Controllers
         {
             // Lấy danh sách đặt phòng, sắp xếp đơn mới nhất lên đầu trang
             var list = await _context.DatPhongs
+                .Include(dp => dp.MaKhNavigation) // Tải thông tin khách hàng liên quan
                 .OrderByDescending(x => x.NgayDat)
+                .Select(dp => new {
+                    dp.MaDatPhong,
+                    dp.MaPhong,
+                    TenKhachHang = dp.MaKhNavigation.HoTen, // Lấy tên khách hàng
+                    SoDienThoai = dp.MaKhNavigation.SoDienThoai, // Lấy SĐT để tìm kiếm
+                    dp.NgayNhan,
+                    dp.NgayTra,
+                    dp.TongTien,
+                    dp.TrangThai,
+                    dp.NgayDat
+                })
                 .ToListAsync();
 
             return Ok(list);
         }
        
-        // UC-ADMIN-04: CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG 
-        
-        [HttpPut("cap-nhat-don/{maDatPhong}")]
-        public async Task<IActionResult> CapNhatTrangThaiDon(int maDatPhong, [FromQuery] string status)
+        // UC-ADMIN-04A: DUYỆT ĐƠN HÀNG
+        [HttpPut("duyet-don/{maDatPhong}")]
+        public async Task<IActionResult> DuyetDon(int maDatPhong)
         {
             var don = await _context.DatPhongs.FindAsync(maDatPhong);
             if (don == null) return NotFound(new { message = "Không tìm thấy đơn đặt phòng." });
- 
-            var oldStatus = don.TrangThai;
-            don.TrangThai = status;
- 
-            // Khi admin duyệt đơn thủ công (chuyển sang "Success"), ta cần ghi nhận giao dịch này
-            // để thống kê doanh thu được chính xác, tương tự như luồng thanh toán online.
-            if (status == "Success" && oldStatus == "Pending")
+
+            if (don.TrangThai != "Pending")
             {
-                // Kiểm tra xem đã có bản ghi đặt cọc chưa để tránh tạo trùng lặp
-                var existingDatCoc = await _context.DatCocs.FirstOrDefaultAsync(dc => dc.MaDatPhong == maDatPhong);
-                if (existingDatCoc == null)
-                {
-                    var datCoc = new DatCoc
-                    {
-                        MaDatPhong = don.MaDatPhong,
-                        SoTienCoc = don.TongTien, // Giả định admin duyệt là đã thanh toán đủ
-                        TrangThai = "Đã thanh toán",
-                        NgayDatCoc = DateTime.Now
-                    };
-                    _context.DatCocs.Add(datCoc);
-                }
+                return BadRequest(new { message = "Chỉ có thể duyệt đơn ở trạng thái 'Pending'." });
             }
- 
-            // Xóa bỏ logic cũ: Việc thay đổi trạng thái phòng khi duyệt đơn là không chính xác.
-            // Trạng thái phòng (Trống, Đang sử dụng) nên được xác định động dựa trên ngày nhận/trả phòng
-            // của các đơn đã được xác nhận, chứ không nên gán cứng một trạng thái.
- 
+
+            var oldStatus = don.TrangThai;
+            don.TrangThai = "Success";
+
+            // Ghi nhận giao dịch/đặt cọc khi duyệt tay
+            var existingDatCoc = await _context.DatCocs.FirstOrDefaultAsync(dc => dc.MaDatPhong == maDatPhong);
+            if (existingDatCoc == null)
+            {
+                _context.DatCocs.Add(new DatCoc
+                {
+                    MaDatPhong = don.MaDatPhong,
+                    SoTienCoc = don.TongTien,
+                    TrangThai = "Đã thanh toán",
+                    NgayDatCoc = DateTime.Now
+                });
+            }
+
+            // TODO: Gửi email xác nhận cho khách hàng tại đây
+
             await _context.SaveChangesAsync();
-            return Ok(new { message = $"Đã cập nhật đơn #{maDatPhong} thành {status}" });
+            return Ok(new { message = $"Đã duyệt thành công đơn #{maDatPhong}." });
+        }
+
+        // UC-ADMIN-04B: HỦY ĐƠN HÀNG
+        [HttpPut("huy-don/{maDatPhong}")]
+        public async Task<IActionResult> HuyDon(int maDatPhong)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var don = await _context.DatPhongs.FindAsync(maDatPhong);
+                if (don == null) return NotFound(new { message = "Không tìm thấy đơn đặt phòng." });
+
+                if (don.TrangThai == "Success" || don.TrangThai == "Đã hủy")
+                {
+                     return BadRequest(new { message = $"Không thể hủy đơn ở trạng thái '{don.TrangThai}'." });
+                }
+
+                don.TrangThai = "Đã hủy";
+
+                // Cập nhật lại trạng thái phòng về 'Trống'
+                // Logic an toàn: chỉ cập nhật nếu không có đơn nào khác đang chiếm giữ phòng
+                var phong = await _context.Phongs.FindAsync(don.MaPhong);
+                if (phong != null)
+                {
+                    var today = DateTime.Now.Date;
+                    var isOccupiedByAnotherBooking = await _context.DatPhongs.AnyAsync(dp => 
+                        dp.MaPhong == phong.MaPhong &&
+                        dp.MaDatPhong != maDatPhong && // Loại trừ đơn đang hủy
+                        dp.TrangThai == "Success" &&
+                        dp.NgayNhan.Date <= today &&
+                        dp.NgayTra.Date > today
+                    );
+
+                    if (!isOccupiedByAnotherBooking) {
+                        phong.TrangThai = "Trống";
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Ok(new { message = $"Đã hủy thành công đơn #{maDatPhong}." });
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { message = "Đã có lỗi xảy ra trong quá trình hủy đơn." });
+            }
         }
        
         // LẤY DANH SÁCH TOÀN BỘ PHÒNG
