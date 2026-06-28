@@ -29,35 +29,41 @@ namespace lxrhotel.API
 
         public string CreateRequestUrl(string baseUrl, string vnp_HashSecret)
         {
-            StringBuilder data = new StringBuilder();
-            foreach (KeyValuePair<string, string> kv in _requestData)
-            {
+            var data = new StringBuilder();
+            foreach (var kv in _requestData)
                 if (!string.IsNullOrEmpty(kv.Value))
-                {
                     data.Append(Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(kv.Value) + "&");
-                }
-            }
-            string queryString = data.ToString();
-            baseUrl += "?" + queryString;
-            string signData = queryString.Remove(data.Length - 1);
-            string vnp_SecureHash = HmacSHA512(vnp_HashSecret, signData);
-            baseUrl += "vnp_SecureHash=" + vnp_SecureHash;
-            return baseUrl;
+
+    var signData = string.Empty;
+    if (data.Length > 0) 
+    {
+        signData = data.ToString().Remove(data.Length - 1);
+        baseUrl += "?" + signData;
+    }
+
+    var vnp_SecureHash = HmacSHA512(vnp_HashSecret, signData);
+
+    baseUrl += (data.Length > 0 ? "&" : "?") + "vnp_SecureHash=" + vnp_SecureHash;
+
+    return baseUrl;
         }
 
         public bool ValidateSignature(string inputHash, string secretKey)
         {
-            StringBuilder data = new StringBuilder();
-            foreach (KeyValuePair<string, string> kv in _responseData)
-            {
-                if (!string.IsNullOrEmpty(kv.Value))
-                {
+            var data = new StringBuilder();
+            foreach (var kv in _responseData)
+                if (!string.IsNullOrEmpty(kv.Value) && kv.Key != "vnp_SecureHash")
                     data.Append(Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(kv.Value) + "&");
-                }
-            }
-            string checkSumData = data.ToString().Remove(data.Length - 1);
-            string myChecksum = HmacSHA512(secretKey, checkSumData);
-            return myChecksum.Equals(inputHash, StringComparison.InvariantCultureIgnoreCase);
+
+    // Remove the last '&'
+    var checkSumData = string.Empty;
+    if (data.Length > 0)
+    {
+        checkSumData = data.ToString().Remove(data.Length - 1);
+    }
+    
+    var myChecksum = HmacSHA512(secretKey, checkSumData);
+    return myChecksum.Equals(inputHash, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public string HmacSHA512(string key, string inputData)

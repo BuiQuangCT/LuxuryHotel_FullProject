@@ -102,8 +102,8 @@ namespace lxrhotel.API.Tests
             // For now, let's assume checkSignature will be true with a valid-looking setup.
             // Let's create a valid hash
             var vnpayLibForHash = new VnPayLibrary();
-            vnpayLibForHash.AddResponseData("vnp_ResponseCode", "00");
-            vnpayLibForHash.AddResponseData("vnp_TxnRef", "12345");
+            vnpayLibForHash.AddRequestData("vnp_ResponseCode", "00");
+            vnpayLibForHash.AddRequestData("vnp_TxnRef", "12345");
             secureHash = vnpayLibForHash.CreateRequestUrl("", vnp_HashSecret).Split('?')[1].Split('&').First(s => s.StartsWith("vnp_SecureHash")).Split('=')[1];
             queryParams["vnp_SecureHash"] = secureHash;
 
@@ -164,11 +164,9 @@ namespace lxrhotel.API.Tests
             string vnp_HashSecret = "Y1UDIWP635I8SD7R7SI43AIE591F5ZUM";
             
             var vnpay = new VnPayLibrary();
-            foreach(var (key, value) in queryParams)
-            {
-                vnpay.AddResponseData(key, value);
-            }
-            string secureHash = vnpay.CreateRequestUrl("", vnp_HashSecret).Split('?')[1].Split('&').First(s => s.StartsWith("vnp_SecureHash")).Split('=')[1];
+            vnpay.AddRequestData("vnp_ResponseCode", "24");
+            vnpay.AddRequestData("vnp_TxnRef", "54321");
+            string secureHash = vnpay.CreateRequestUrl("", vnp_HashSecret).Split(new[] { "vnp_SecureHash=" }, StringSplitOptions.None)[1];
             queryParams.Add("vnp_SecureHash", secureHash);
 
             controller.ControllerContext.HttpContext = CreateMockHttpContext(queryParams);
