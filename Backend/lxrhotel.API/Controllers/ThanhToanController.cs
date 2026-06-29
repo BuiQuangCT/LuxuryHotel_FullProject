@@ -27,8 +27,17 @@ namespace lxrhotel.API.Controllers
             string vnp_HashSecret = "Y1UDIWP635I8SD7R7SI43AIE591F5ZUM"; 
             string vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"; 
 
-            // Link để VNPay đá về sau khi thanh toán xong
-            string vnp_Returnurl = "http://127.0.0.1:5500/index.html";
+            // Lấy URL của API để tạo ReturnUrl động
+            var request = HttpContext.Request;
+            // Chú ý: Cần đảm bảo địa chỉ này có thể được VNPay truy cập.
+            // Đối với môi trường local, bạn có thể cần sử dụng ngrok hoặc cấu hình tương tự.
+            // Tạm thời, nếu chạy local, ta có thể giả định một URL mà VNPay có thể gọi được.
+            // Ở đây, tôi sẽ xây dựng URL dựa trên request đến, nhưng có thể cần chỉnh sửa
+            // cho phù hợp với môi trường triển khai của bạn.
+            string vnp_Returnurl = $"{request.Scheme}://{request.Host}/api/ThanhToan/vnpay-return";
+
+            // Link để VNPay đá về sau khi thanh toán xong (ĐÃ SỬA)
+            // string vnp_Returnurl = "http://127.0.0.1:5500/index.html";
 
             // 2. Gọi thư viện VnPayLibrary
             VnPayLibrary vnpay = new VnPayLibrary();
@@ -51,6 +60,51 @@ namespace lxrhotel.API.Controllers
 
             return Ok(new { url = paymentUrl });
         }
+
+        [HttpGet("vnpay-return")]
+        public IActionResult VNPayReturn()
+        {
+            string vnp_HashSecret = "Y1UDIWP635I8SD7R7SI43AIE591F5ZUM";
+            var vnpay = new VnPayLibrary();
+            var queryDictionary = HttpContext.Request.Query;
+
+            foreach (var kv in queryDictionary)
+            {
+                if (!string.IsNullOrEmpty(kv.Key) && kv.Key.StartsWith("vnp_"))
+                {
+                    vnpay.AddResponseData(kv.Key, kv.Value.ToString());
+                }
+            }
+
+            string vnp_TxnRef = vnpay.GetResponseData("vnp_TxnRef");
+            string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
+            string vnp_SecureHash = queryDictionary["vnp_SecureHash"].ToString();
+
+            bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, vnp_HashSecret);
+
+            // URL của trang frontend để chuyển hướng về
+            string frontend_url = "http://127.0.0.1:5500/booking-confirm.html";
+
+            if (!checkSignature)
+            {
+                // Chuyển hướng về trang frontend với thông báo lỗi
+                return Redirect($"{frontend_url}?status=error&message=Invalid+signature&orderId={vnp_TxnRef}");
+            }
+
+            if (vnp_ResponseCode == "00")
+            {
+                // Thanh toán thành công
+                // Chuyển hướng về trang frontend với trạng thái thành công
+                return Redirect($"{frontend_url}?status=success&orderId={vnp_TxnRef}&message=Payment+Success");
+            }
+            else
+            {
+                // Thanh toán thất bại
+                // Chuyển hướng về trang frontend với trạng thái thất bại
+                return Redirect($"{frontend_url}?status=failed&orderId={vnp_TxnRef}&message=Payment+Failed+-+Code:+{vnp_ResponseCode}");
+            }
+        }
+
 
         [HttpGet("vnpay-ipn")]
         public async Task<IActionResult> VNPayIPN()

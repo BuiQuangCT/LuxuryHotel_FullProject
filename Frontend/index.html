@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trang Chủ - Luxury Hotel</title>
+
     <style>
       html {
         scroll-behavior: smooth;
@@ -767,6 +768,7 @@
       loadDiaDiem();
 
       // HÀM LỊCH SỬ ĐẶT PHÒNG
+      // HÀM LỊCH SỬ ĐẶT PHÒNG
       async function openHistory() {
         const maKh = localStorage.getItem("hotel_makh");
         if (!maKh) {
@@ -780,9 +782,40 @@
           '<tr><td colspan="6" style="text-align:center; padding:20px;">Đang tải...</td></tr>';
 
         try {
+          const token = localStorage.getItem("hotel_token");
+
+          // 1. GỌI API LẤY LỊCH SỬ
           const res = await fetch(
             `https://localhost:7182/api/DatPhong/lich-su/${maKh}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            },
           );
+
+          // 2. BẮT LỖI TỪ BACKEND TRƯỚC KHI ÉP SANG JSON
+          if (!res.ok) {
+            if (res.status === 401) {
+              alert("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
+              dangXuat();
+              return;
+            }
+            if (res.status === 404) {
+              historyContent.innerHTML =
+                '<tr><td colspan="6" style="text-align:center; color:red; padding:20px;">Lỗi 404: Không tìm thấy đường dẫn API! (Hãy kiểm tra lại Controller C# xem có đúng là [HttpGet("lich-su/{maKh}")] không nhé)</td></tr>';
+              return;
+            }
+            // Các lỗi 500 khác
+            const errorText = await res.text();
+            console.error("Lỗi từ Backend:", errorText);
+            historyContent.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding:20px;">Lỗi Backend Code: ${res.status}. Bấm F12 sang tab Console để xem chi tiết.</td></tr>`;
+            return;
+          }
+
+          // 3. NẾU THÀNH CÔNG THÌ RENDER DỮ LIỆU
           const data = await res.json();
 
           let html = "";
@@ -791,9 +824,14 @@
               '<tr><td colspan="6" style="text-align:center; padding:20px;">Bạn chưa có đơn đặt phòng nào.</td></tr>';
           } else {
             data.forEach((item) => {
-              const isCancellable = item.trangThai !== "Success" && item.trangThai !== "Đã hủy" && item.trangThai !== "\u0110\u00e3 h\u1ee7y" && item.trangThai !== "Ðã h?y";
+              const isCancellable =
+                item.trangThai !== "Success" &&
+                item.trangThai !== "Đã hủy" &&
+                item.trangThai !== "\u0110\u00e3 h\u1ee7y" &&
+                item.trangThai !== "Ðã h?y";
               let trangThaiDisplay = item.trangThai;
-              if (trangThaiDisplay === "Ðã h?y") trangThaiDisplay = "\u0110\u00e3 h\u1ee7y"; // Sửa lỗi hiển thị
+              if (trangThaiDisplay === "Ðã h?y")
+                trangThaiDisplay = "\u0110\u00e3 h\u1ee7y";
 
               html += `
                           <tr>
@@ -802,12 +840,12 @@
                               <td style="padding:12px; border-bottom:1px solid #eee;">${new Date(item.ngayNhan).toLocaleDateString("vi-VN")} - ${new Date(item.ngayTra).toLocaleDateString("vi-VN")}</td>
                               <td style="padding:12px; border-bottom:1px solid #eee; font-weight:bold;">${item.tongTien.toLocaleString()}đ</td>
                               <td style="padding:12px; border-bottom:1px solid #eee;">
-                                  <span style="padding:4px 8px; border-radius:4px; font-size:12px; color:white; background:${item.trangThai === "Success" ? "#2ecc71" : (item.trangThai === "Đã hủy" || item.trangThai === "\u0110\u00e3 h\u1ee7y" || item.trangThai === "Ðã h?y") ? "#e74c3c" : "#f39c12"}">
+                                  <span style="padding:4px 8px; border-radius:4px; font-size:12px; color:white; background:${item.trangThai === "Success" ? "#2ecc71" : item.trangThai === "Đã hủy" || item.trangThai === "\u0110\u00e3 h\u1ee7y" || item.trangThai === "Ðã h?y" ? "#e74c3c" : "#f39c12"}">
                                       ${trangThaiDisplay}
                                   </span>
                               </td>
                               <td style="padding:12px; border-bottom:1px solid #eee;">
-                                  ${isCancellable ? `<button onclick="huyDon(${item.maDatPhong})" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">H\u1ee7y \u0111\u01a1n</button>` : "-"}
+                                  ${isCancellable ? `<button onclick="huyDon(${item.maDatPhong})" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Hủy đơn</button>` : "-"}
                               </td>
                           </tr>
                       `;
@@ -815,8 +853,9 @@
           }
           historyContent.innerHTML = html;
         } catch (err) {
+          console.error(err);
           historyContent.innerHTML =
-            '<tr><td colspan="6" style="text-align:center; color:red;">Lỗi kết nối máy chủ!</td></tr>';
+            '<tr><td colspan="6" style="text-align:center; color:red;">Lỗi kết nối! Backend chưa chạy hoặc sai Cổng (Port).</td></tr>';
         }
       }
 

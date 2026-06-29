@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("lxrhotel.API.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+beb9675bb05aba92806115df4136942bbb43fda9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+025e9bd8a70a887887b5cc78b69ceac0ede58d5d")]
 [assembly: System.Reflection.AssemblyProductAttribute("lxrhotel.API.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("lxrhotel.API.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -357,7 +357,13 @@
 
         <div id="tab-bookings" class="tab-pane">
           <div class="filter-bar">
-            <input type="text" id="bookingSearch" oninput="applyBookingFilters()" placeholder="Tìm theo mã đơn, tên, SĐT..." style="width: 280px;">
+            <input
+              type="text"
+              id="bookingSearch"
+              oninput="applyBookingFilters()"
+              placeholder="Tìm theo mã đơn, tên, SĐT..."
+              style="width: 280px"
+            />
             <select id="bookingStatusFilter" onchange="applyBookingFilters()">
               <option value="">Tất cả trạng thái</option>
               <option value="Pending">Pending (Chờ TT)</option>
@@ -603,59 +609,72 @@
           renderBookings(allBookings); // Render all bookings initially
         } catch (e) {
           console.error(e);
-          document.getElementById("bangDonHang").innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">Lỗi tải dữ liệu.</td></tr>`;
+          document.getElementById("bangDonHang").innerHTML =
+            `<tr><td colspan="8" style="text-align: center; color: red;">Lỗi tải dữ liệu.</td></tr>`;
         }
       }
 
       function applyBookingFilters() {
-        const searchTerm = document.getElementById('bookingSearch').value.toLowerCase();
-        const statusFilter = document.getElementById('bookingStatusFilter').value;
+        const searchTerm = document
+          .getElementById("bookingSearch")
+          .value.toLowerCase();
+        const statusFilter = document.getElementById(
+          "bookingStatusFilter",
+        ).value;
 
-        const filteredBookings = allBookings.filter(b => {
-            const searchMatch = searchTerm === '' ||
-                                b.maDatPhong.toString().includes(searchTerm) ||
-                                b.tenKhachHang.toLowerCase().includes(searchTerm) ||
-                                (b.soDienThoai && b.soDienThoai.includes(searchTerm));
+        const filteredBookings = allBookings.filter((b) => {
+          const searchMatch =
+            searchTerm === "" ||
+            b.maDatPhong.toString().includes(searchTerm) ||
+            b.tenKhachHang.toLowerCase().includes(searchTerm) ||
+            (b.soDienThoai && b.soDienThoai.includes(searchTerm));
 
-            let statusMatch = statusFilter === '' || b.trangThai === statusFilter;
-            // Handle inconsistent "Đã hủy" statuses from DB
-            if (statusFilter === 'Đã hủy') {
-                statusMatch = b.trangThai === 'Đã hủy' || b.trangThai === 'Ðã h?y';
-            }
+          let statusMatch = statusFilter === "" || b.trangThai === statusFilter;
+          // Handle inconsistent "Đã hủy" statuses from DB
+          if (statusFilter === "Đã hủy") {
+            statusMatch = b.trangThai === "Đã hủy" || b.trangThai === "Ðã h?y";
+          }
 
-
-            return searchMatch && statusMatch;
+          return searchMatch && statusMatch;
         });
 
         renderBookings(filteredBookings);
       }
 
       function renderBookings(bookings) {
-          let html = "";
-          if (bookings.length === 0) {
-              document.getElementById("bangDonHang").innerHTML = `<tr><td colspan="8" style="text-align: center;">Không tìm thấy đơn đặt phòng nào.</td></tr>`;
-              return;
+        let html = "";
+        if (bookings.length === 0) {
+          document.getElementById("bangDonHang").innerHTML =
+            `<tr><td colspan="8" style="text-align: center;">Không tìm thấy đơn đặt phòng nào.</td></tr>`;
+          return;
+        }
+
+        bookings.forEach((b) => {
+          let badgeClass = "status-pending";
+          let trangThaiDisplay = b.trangThai;
+
+          // Handle encoding issues and map statuses to colors
+          if (trangThaiDisplay === "Ðã h?y") trangThaiDisplay = "Đã hủy";
+          if (b.trangThai === "Success" || b.trangThai === "Đã đặt cọc") {
+            badgeClass = "status-success";
+          }
+          if (
+            b.trangThai === "Đã hủy" ||
+            b.trangThai === "Failed" ||
+            b.trangThai === "Ðã h?y"
+          ) {
+            badgeClass = "status-danger";
           }
 
-          bookings.forEach((b) => {
-            let badgeClass = "status-pending";
-            let trangThaiDisplay = b.trangThai;
-
-            // Handle encoding issues and map statuses to colors
-            if (trangThaiDisplay === "Ðã h?y") trangThaiDisplay = "Đã hủy";
-            if (b.trangThai === "Success" || b.trangThai === "Đã đặt cọc") { badgeClass = "status-success"; }
-            if (b.trangThai === "Đã hủy" || b.trangThai === "Failed" || b.trangThai === "Ðã h?y") { badgeClass = "status-danger"; }
-
-
-            let actionButtons = '-';
-            if (b.trangThai === 'Pending') {
-                actionButtons = `
+          let actionButtons = "-";
+          if (b.trangThai === "Pending") {
+            actionButtons = `
                     <button onclick="approveDon(${b.maDatPhong})" class="btn-action btn-approve" style="margin-right:5px">Duyệt</button>
                     <button onclick="cancelDon(${b.maDatPhong})" class="btn-action btn-cancel">Hủy</button>
                 `;
-            }
+          }
 
-            html += `<tr>
+          html += `<tr>
                         <td><b>#${b.maDatPhong}</b></td>
                         <td>${b.tenKhachHang}</td>
                         <td>${b.maPhong}</td>
@@ -665,44 +684,79 @@
                         <td><span class="status-badge ${badgeClass}">${trangThaiDisplay}</span></td>
                         <td>${actionButtons}</td>
                      </tr>`;
-          });
-          document.getElementById("bangDonHang").innerHTML = html;
+        });
+        document.getElementById("bangDonHang").innerHTML = html;
       }
-      
+
       async function approveDon(id) {
         if (!confirm(`Xác nhận DUYỆT đơn hàng #${id}?`)) return;
-        
-        const res = await fetch(`${API_BASE_URL}/duyet-don/${id}`, {
+
+        try {
+          const res = await fetch(`${API_BASE_URL}/duyet-don/${id}`, {
             method: "PUT",
             headers: myHeaders,
-        });
+          });
 
-        if (res.ok) {
+          if (res.ok) {
             showToast("Duyệt đơn thành công!");
-            loadBookings(); // Reload data
-        } else {
-            const err = await res.json();
-            showToast("Lỗi: " + (err.message || "Không thể duyệt đơn."), true);
+            loadBookings(); // Tự động load lại bảng
+          } else {
+            // Bắt lỗi Token hoặc phân quyền
+            if (res.status === 401 || res.status === 403) {
+              alert(
+                "Phiên đăng nhập đã hết hạn hoặc bạn không có quyền Admin. Vui lòng đăng nhập lại!",
+              );
+              dangXuat();
+              return;
+            }
+
+            // Đọc lỗi dạng chữ thay vì JSON để tránh crash
+            const errorText = await res.text();
+            console.error("Chi tiết lỗi từ C#:", errorText);
+            showToast(
+              "Lỗi: Không thể duyệt đơn (Nhấn F12 xem Console để biết chi tiết)",
+              true,
+            );
+          }
+        } catch (err) {
+          console.error(err);
+          showToast("Lỗi kết nối máy chủ!", true);
         }
       }
 
       async function cancelDon(id) {
         if (!confirm(`Bạn có chắc chắn muốn HỦY đơn hàng #${id}?`)) return;
 
-        const res = await fetch(`${API_BASE_URL}/huy-don/${id}`, {
+        try {
+          const res = await fetch(`${API_BASE_URL}/huy-don/${id}`, {
             method: "PUT",
             headers: myHeaders,
-        });
+          });
 
-        if (res.ok) {
+          if (res.ok) {
             showToast("Hủy đơn thành công!");
-            loadBookings(); // Reload data
-        } else {
-            const err = await res.json();
-            showToast("Lỗi: " + (err.message || "Không thể hủy đơn."), true);
+            loadBookings(); // Tự động load lại bảng
+          } else {
+            if (res.status === 401 || res.status === 403) {
+              alert(
+                "Phiên đăng nhập đã hết hạn hoặc bạn không có quyền Admin. Vui lòng đăng nhập lại!",
+              );
+              dangXuat();
+              return;
+            }
+
+            const errorText = await res.text();
+            console.error("Chi tiết lỗi từ C#:", errorText);
+            showToast(
+              "Lỗi: Không thể hủy đơn (Nhấn F12 xem Console để biết chi tiết)",
+              true,
+            );
+          }
+        } catch (err) {
+          console.error(err);
+          showToast("Lỗi kết nối máy chủ!", true);
         }
       }
-
       // 3. API QUẢN LÝ PHÒNG
       async function loadRooms() {
         try {
@@ -717,12 +771,17 @@
             const currentStatus = p.trangThai;
             // Define options
             const options = [
-                { value: "Trống", text: "Trống (Sẵn sàng)"},
-                { value: "Bảo trì", text: "Bảo trì"},
-                { value: "Đang dọn dẹp", text: "Đang dọn dẹp"}
+              { value: "Trống", text: "Trống (Sẵn sàng)" },
+              { value: "Bảo trì", text: "Bảo trì" },
+              { value: "Đang dọn dẹp", text: "Đang dọn dẹp" },
             ];
-            
-            let selectOptions = options.map(opt => `<option value="${opt.value}" ${currentStatus === opt.value ? 'selected' : ''}>${opt.text}</option>`).join('');
+
+            let selectOptions = options
+              .map(
+                (opt) =>
+                  `<option value="${opt.value}" ${currentStatus === opt.value ? "selected" : ""}>${opt.text}</option>`,
+              )
+              .join("");
 
             html += `<tr>
                         <td><b>${p.maPhong}</b></td>
@@ -751,19 +810,19 @@
       }
 
       function checkTrangThaiPhongChanged(maPhong, currentStatus) {
-          const select = document.getElementById(`status-select-${maPhong}`);
-          const saveBtn = document.getElementById(`save-btn-${maPhong}`);
-          if (select.value !== currentStatus) {
-              saveBtn.disabled = false;
-          } else {
-              saveBtn.disabled = true;
-          }
+        const select = document.getElementById(`status-select-${maPhong}`);
+        const saveBtn = document.getElementById(`save-btn-${maPhong}`);
+        if (select.value !== currentStatus) {
+          saveBtn.disabled = false;
+        } else {
+          saveBtn.disabled = true;
+        }
       }
 
       async function luuTrangThaiPhong(maPhong) {
         const select = document.getElementById(`status-select-${maPhong}`);
         const trangThaiMoi = select.value;
-        
+
         if (!trangThaiMoi) return;
 
         const res = await fetch(
@@ -778,21 +837,26 @@
           const saveBtn = document.getElementById(`save-btn-${maPhong}`);
           saveBtn.disabled = true;
 
-          const statusLabel = document.getElementById(`status-label-${maPhong}`);
+          const statusLabel = document.getElementById(
+            `status-label-${maPhong}`,
+          );
           statusLabel.textContent = trangThaiMoi;
-          
+
           // Update class for color
-          statusLabel.className = 'status-badge'; // reset classes
-          let badgeClass = 'status-pending';
-          if (trangThaiMoi === "Sẵn sàng" || trangThaiMoi === "Trống") badgeClass = 'status-success';
-          if (trangThaiMoi === "Bảo trì") badgeClass = 'status-danger';
+          statusLabel.className = "status-badge"; // reset classes
+          let badgeClass = "status-pending";
+          if (trangThaiMoi === "Sẵn sàng" || trangThaiMoi === "Trống")
+            badgeClass = "status-success";
+          if (trangThaiMoi === "Bảo trì") badgeClass = "status-danger";
           statusLabel.classList.add(badgeClass);
 
           // Update the "currentStatus" for the onchange event
-          select.setAttribute('onchange', `checkTrangThaiPhongChanged('${maPhong}', '${trangThaiMoi}')`);
-          
+          select.setAttribute(
+            "onchange",
+            `checkTrangThaiPhongChanged('${maPhong}', '${trangThaiMoi}')`,
+          );
+
           showToast("Cập nhật trạng thái phòng thành công!");
-          
         } else {
           const errData = await res.json();
           showToast("Lỗi: " + (errData.message || "Không thể cập nhật"), true);
@@ -801,12 +865,12 @@
 
       // Simple Toast Notification System
       function showToast(message, isError = false) {
-          let toast = document.getElementById('toast-notification');
-          if (!toast) {
-              toast = document.createElement('div');
-              toast.id = 'toast-notification';
-              document.body.appendChild(toast);
-              toast.style.cssText = `
+        let toast = document.getElementById("toast-notification");
+        if (!toast) {
+          toast = document.createElement("div");
+          toast.id = "toast-notification";
+          document.body.appendChild(toast);
+          toast.style.cssText = `
                   position: fixed;
                   bottom: 20px;
                   right: 20px;
@@ -819,17 +883,17 @@
                   transition: opacity 0.4s, transform 0.4s;
                   transform: translateY(20px);
               `;
-          }
+        }
 
-          toast.textContent = message;
-          toast.style.backgroundColor = isError ? '#ef4444' : '#10b981';
-          toast.style.opacity = 1;
-          toast.style.transform = 'translateY(0)';
+        toast.textContent = message;
+        toast.style.backgroundColor = isError ? "#ef4444" : "#10b981";
+        toast.style.opacity = 1;
+        toast.style.transform = "translateY(0)";
 
-          setTimeout(() => {
-              toast.style.opacity = 0;
-              toast.style.transform = 'translateY(20px)';
-          }, 3000);
+        setTimeout(() => {
+          toast.style.opacity = 0;
+          toast.style.transform = "translateY(20px)";
+        }, 3000);
       }
 
       // 4. API QUẢN LÝ KHÁCH HÀNG

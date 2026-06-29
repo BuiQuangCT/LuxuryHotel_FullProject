@@ -104,9 +104,24 @@
           />
         </div>
         <div class="input-group">
-          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: baseline;
+            "
+          >
             <label>Mật khẩu</label>
-            <a href="forgot-password.html" style="font-size: 12px; color: #d4af37; text-decoration: none; font-weight: bold;">Quên mật khẩu?</a>
+            <a
+              href="forgot-password.html"
+              style="
+                font-size: 12px;
+                color: #d4af37;
+                text-decoration: none;
+                font-weight: bold;
+              "
+              >Quên mật khẩu?</a
+            >
           </div>
           <input
             type="password"
@@ -153,7 +168,6 @@
 
               localStorage.setItem("hotel_token", data.token);
               localStorage.setItem("hotel_makh", data.maKh);
-
               // Phân luồng
               if (data.vaiTro === "Admin") {
                 window.location.href = "admin.html";
