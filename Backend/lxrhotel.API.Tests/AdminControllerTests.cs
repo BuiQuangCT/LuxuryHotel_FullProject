@@ -83,8 +83,9 @@ namespace lxrhotel.API.Tests
             var result = await controller.CapNhatTrangThaiPhong(phong.MaPhong, "Bảo trì");
 
         
-            result.Should().BeOfType<BadRequestObjectResult>()
-                   .Which.Value.Should().Be("Không thể thay đổi trạng thái. Phòng này hiện đang có khách ở.");
+            var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            var value = badRequestResult.Value;
+            value.GetType().GetProperty("message")?.GetValue(value).Should().Be("Phòng đang có người, yêu cầu Check-out trước");
         }
 
         #endregion
@@ -139,47 +140,43 @@ namespace lxrhotel.API.Tests
 
         #endregion
 
-        #region Test cho chức năng Cập nhật trạng thái đơn
+        #region Test cho chức năng Duyệt và Hủy đơn
 
         [Fact]
-        public async Task CapNhatTrangThaiDon_ShouldChangeStatusToSuccess_AndReturnOk()
+        public async Task DuyetDon_ShouldChangeStatusToSuccess_AndReturnOk()
         {
-          
+            // Arrange
             var context = CreateContext();
-            var phong = new Phong { MaPhong = "P101", LoaiPhong = "Standard", MaKs = "KS01", TrangThai = "Trống" };
             var don = new DatPhong { MaDatPhong = 1, MaPhong = "P101", TrangThai = "Pending", TongTien = 1200 };
-            context.Phongs.Add(phong);
             context.DatPhongs.Add(don);
             await context.SaveChangesAsync();
 
             var controller = new AdminController(context);
 
-           
-            var result = await controller.CapNhatTrangThaiDon(1, "Success");
+            // Act
+            var result = await controller.DuyetDon(1);
 
-           
+            // Assert
             result.Should().BeOfType<OkObjectResult>();
             var updatedDon = await context.DatPhongs.FindAsync(1);
             updatedDon.TrangThai.Should().Be("Success");
         }
 
         [Fact]
-        public async Task CapNhatTrangThaiDon_ShouldCreateDatCocRecord_WhenApprovingPendingOrder()
+        public async Task DuyetDon_ShouldCreateDatCocRecord_WhenApprovingPendingOrder()
         {
-           
+            // Arrange
             var context = CreateContext();
-            var phong = new Phong { MaPhong = "P101", LoaiPhong = "Standard", MaKs = "KS01", TrangThai = "Trống" };
             var don = new DatPhong { MaDatPhong = 1, MaPhong = "P101", TrangThai = "Pending", TongTien = 1200 };
-            context.Phongs.Add(phong);
             context.DatPhongs.Add(don);
             await context.SaveChangesAsync();
 
             var controller = new AdminController(context);
 
-          
-            await controller.CapNhatTrangThaiDon(1, "Success");
+            // Act
+            await controller.DuyetDon(1);
 
-            
+            // Assert
             var datCocMoi = await context.DatCocs.FirstOrDefaultAsync(dc => dc.MaDatPhong == 1);
             datCocMoi.Should().NotBeNull();
             datCocMoi.SoTienCoc.Should().Be(1200);
@@ -187,22 +184,20 @@ namespace lxrhotel.API.Tests
         }
 
         [Fact]
-        public async Task CapNhatTrangThaiDon_ShouldChangeStatusToCancelled_AndReturnOk()
+        public async Task HuyDon_ShouldChangeStatusToCancelled_WhenOrderIsPending()
         {
-       
+            // Arrange
             var context = CreateContext();
-            var phong = new Phong { MaPhong = "P101", LoaiPhong = "Standard", MaKs = "KS01", TrangThai = "Trống" };
             var don = new DatPhong { MaDatPhong = 1, MaPhong = "P101", TrangThai = "Pending" };
-            context.Phongs.Add(phong);
             context.DatPhongs.Add(don);
             await context.SaveChangesAsync();
 
             var controller = new AdminController(context);
 
-         
-            var result = await controller.CapNhatTrangThaiDon(1, "Đã hủy");
+            // Act
+            var result = await controller.HuyDon(1);
 
-           
+            // Assert
             result.Should().BeOfType<OkObjectResult>();
             var updatedDon = await context.DatPhongs.FindAsync(1);
             updatedDon.TrangThai.Should().Be("Đã hủy");
