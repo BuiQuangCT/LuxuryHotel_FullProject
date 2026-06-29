@@ -2,6 +2,7 @@ using Xunit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using lxrhotel.API.Models;
 using lxrhotel.API.Controllers;
 
@@ -15,7 +16,8 @@ namespace lxrhotel.API.Tests
         public AdminControllerTests()
         {
             _dbOptions = new DbContextOptionsBuilder<LuxuryHotelContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) 
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
                 .Options;
         }
 
