@@ -671,21 +671,22 @@
         }
       }
 
+      //KẾT QUẢ THANH TOÁN TỪ VNPAY
       window.addEventListener("load", function () {
         const urlParams = new URLSearchParams(window.location.search);
-        const vnp_ResponseCode = urlParams.get("vnp_ResponseCode");
-        const vnp_TxnRef = urlParams.get("vnp_TxnRef");
 
-        if (vnp_ResponseCode !== null) {
-          if (vnp_ResponseCode === "00") {
+        const status = urlParams.get("status");
+        const orderId = urlParams.get("orderId");
+
+        if (status) {
+          if (status === "success") {
             alert(
-              `🎉 Tuyệt vời! Chúc mừng bạn đã thanh toán thành công cho đơn đặt phòng số ${vnp_TxnRef}.`,
+              `🎉 Tuyệt vời! Chúc mừng bạn đã thanh toán thành công cho đơn đặt phòng số #${orderId}.`,
             );
           } else {
-            alert(
-              `❌ Thanh toán thất bại hoặc đã bị hủy (Mã lỗi: ${vnp_ResponseCode}). Vui lòng thử lại!`,
-            );
+            alert(`❌ Thanh toán thất bại hoặc đã bị hủy. Vui lòng thử lại!`);
           }
+
           window.history.replaceState(
             {},
             document.title,
@@ -694,7 +695,6 @@
         }
       });
 
-      // HÀM TÌM KIẾM VÀ LOAD PHÒNG
       async function loadDiaDiem() {
         const res = await fetch("https://localhost:7182/api/Phong/dia-diem");
         const data = await res.json();
