@@ -55,7 +55,7 @@ namespace lxrhotel.API
                 if (!string.IsNullOrEmpty(kv.Value) && kv.Key != "vnp_SecureHash")
                     data.Append(Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(kv.Value) + "&");
 
-    // Remove the last '&'
+   
     var checkSumData = string.Empty;
     if (data.Length > 0)
     {
