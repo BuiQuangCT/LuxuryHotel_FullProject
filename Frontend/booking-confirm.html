@@ -235,18 +235,16 @@
       const maKh = localStorage.getItem("hotel_makh");
 
       async function initPage() {
-        // Logic mới: Đọc các tham số đã được đơn giản hóa từ backend
-        const status = urlParams.get('status');
-        const orderId = urlParams.get('orderId');
-        const message = urlParams.get('message');
+        const status = urlParams.get("status");
+        const orderId = urlParams.get("orderId");
+        const message = urlParams.get("message");
 
-        // Nếu có tham số 'status', nghĩa là trang này đang hiển thị kết quả trả về từ VNPay
         if (status) {
-            const container = document.querySelector('.container');
-            document.getElementById('loading').style.display = 'none';
+          const container = document.querySelector(".container");
+          document.getElementById("loading").style.display = "none";
 
-            if (status === 'success') {
-                container.innerHTML = `
+          if (status === "success") {
+            container.innerHTML = `
                     <div class="card" style="text-align: center;">
                         <img src="https://cdn-icons-png.flaticon.com/512/148/148767.png" alt="Success" style="width: 80px; margin-bottom: 20px;">
                         <h2 class="card-title" style="color: #27ae60; border: none; display: block;">Đặt phòng thành công!</h2>
@@ -262,8 +260,8 @@
                         </div>
                     </div>
                 `;
-            } else { // 'failed' hoặc 'error'
-                 container.innerHTML = `
+          } else {
+            container.innerHTML = `
                     <div class="card" style="text-align: center;">
                          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828843.png" alt="Failed" style="width: 80px; margin-bottom: 20px;">
                         <h2 class="card-title" style="color: #e74c3c; border: none; display: block;">Thanh toán không thành công!</h2>
@@ -275,11 +273,10 @@
                         </div>
                     </div>
                 `;
-            }
-            return; // Dừng thực thi để không chạy logic tạo đơn hàng mới
+          }
+          return;
         }
 
-        // Logic cũ: Hiển thị thông tin để tạo đơn hàng mới (giữ nguyên)
         if (!maPhong || !maKh) {
           alert("Thông tin không hợp lệ, quay về trang chủ!");
           window.location.href = "index.html";

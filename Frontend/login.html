@@ -175,7 +175,7 @@
                 window.location.href = "index.html";
               }
             } else {
-              // Xử lý lỗi trả về từ Backend (Sai pass, khóa tài khoản...)
+              // sai pass, khóa tài khoản...
               const errorText = await response.text();
               msgBox.style.color = "#ff6b6b";
               msgBox.innerText = errorText;
@@ -188,7 +188,6 @@
           }
         });
 
-      // Hàm hỗ trợ:
       function getRoleFromToken(token) {
         try {
           const payload = JSON.parse(atob(token.split(".")[1]));

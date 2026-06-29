@@ -157,7 +157,6 @@
           };
 
           try {
-            // Gọi API
             const response = await fetch(API_URL, {
               method: "POST",
               headers: {
@@ -172,7 +171,6 @@
               msgBox.innerText =
                 "Đăng ký thành công! Đang chuyển đến trang đăng nhập...";
 
-              // Chuyển hướng
               setTimeout(() => {
                 window.location.href = "login.html";
               }, 2000);

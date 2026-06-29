@@ -45,7 +45,7 @@
         display: flex;
         gap: 20px;
       }
-      /* Cập nhật style cho thẻ a trong menu */
+
       .nav-links a,
       .nav-links li {
         text-decoration: none;
@@ -101,7 +101,6 @@
         color: white;
       }
 
-      /* (BANNER) */
       .hero {
         height: 60vh;
         background:
@@ -127,7 +126,6 @@
         margin-bottom: 30px;
       }
 
-      /* ---- DANH SÁCH PHÒNG ---- */
       .container {
         max-width: 1200px;
         margin: 50px auto;
@@ -204,7 +202,6 @@
         background: #d4af37;
       }
 
-      /* --- FOOTER LIÊN HỆ --- */
       footer {
         background-color: #2c3e50;
         color: white;
@@ -463,9 +460,9 @@
         </div>
         <div class="footer-col" style="flex: 1; min-width: 250px">
           <h3>THÔNG TIN LIÊN HỆ</h3>
-          <p>📍 55 Giải Phóng, Hai Bà Trưng, Hà Nội</p>
-          <p>📞 Hotline: 0123.456.789</p>
-          <p>📧 Email: contact@luxuryhotel.com</p>
+          <p>55 Giải Phóng, Hai Bà Trưng, Hà Nội</p>
+          <p>Hotline: 0123.456.789</p>
+          <p>Email: contact@luxuryhotel.com</p>
         </div>
       </div>
       <div class="footer-bottom">
@@ -588,11 +585,10 @@
       }
 
       // HÀM ĐẶT PHÒNG
-      // --- LOGIC PHƯƠNG ÁN 2: CHỌN MỨC THANH TOÁN ---
+
       let currentMaPhong = "";
       let currentGiaTien = 0;
 
-      // 1. Hàm mở Popup khi bấm "ĐẶT PHÒNG"
       function datPhong(maPhong, giaTien) {
         const maKh = localStorage.getItem("hotel_makh");
         if (!maKh) {
@@ -601,43 +597,36 @@
           return;
         }
 
-        // Lưu tạm thông tin phòng khách đang chọn
         currentMaPhong = maPhong;
         currentGiaTien = giaTien;
 
-        // Tính tiền cọc 30%
         const tienCoc30 = Math.round(giaTien * 0.3);
 
-        // Gán dữ liệu lên Popup
         document.getElementById("modalMaPhong").innerText = maPhong;
         document.getElementById("modalGia100").innerText =
           giaTien.toLocaleString() + " VNĐ";
         document.getElementById("modalGia30").innerText =
           tienCoc30.toLocaleString() + " VNĐ";
 
-        // Hiển thị Popup
         document.getElementById("paymentModal").style.display = "block";
       }
 
-      // Hàm đóng Popup
       function closePaymentModal() {
         document.getElementById("paymentModal").style.display = "none";
       }
 
-      // 2. Hàm xử lý API sau khi khách chọn nút (100% hoặc 30%)
+      // 2. API sau khi chọn nút 100% hoặc 30%
       async function thucHienThanhToan(tyLe) {
         const maKh = localStorage.getItem("hotel_makh");
 
-        // Tính số tiền thực tế sẽ nạp vào VNPay dựa trên tỷ lệ khách chọn
         const tienThanhToan = Math.round(currentGiaTien * (tyLe / 100));
 
-        closePaymentModal(); // Đóng popup
+        closePaymentModal();
 
         const homNay = new Date();
         const ngayMai = new Date(homNay);
         ngayMai.setDate(homNay.getDate() + 1);
 
-        // Payload Database vẫn lưu TỔNG TIỀN là 100% để ra đúng hóa đơn
         const requestData = {
           maKh: parseInt(maKh),
           maPhong: currentMaPhong,
@@ -669,7 +658,7 @@
             const resPay = await fetch(urlThanhToan);
             if (resPay.ok) {
               const payData = await resPay.json();
-              window.location.href = payData.url; // Bay sang trang VNPay
+              window.location.href = payData.url;
             } else {
               alert("Lỗi: Không tạo được liên kết thanh toán!");
             }
@@ -682,7 +671,6 @@
         }
       }
 
-      // KIỂM TRA KẾT QUẢ THANH TOÁN TỪ VNPAY TRẢ VỀ
       window.addEventListener("load", function () {
         const urlParams = new URLSearchParams(window.location.search);
         const vnp_ResponseCode = urlParams.get("vnp_ResponseCode");
@@ -756,7 +744,6 @@
                   `;
           });
 
-          // Cuộn nhẹ xuống danh sách kết quả
           document
             .getElementById("danh-sach-phong")
             .scrollIntoView({ behavior: "smooth" });
@@ -767,7 +754,6 @@
 
       loadDiaDiem();
 
-      // HÀM LỊCH SỬ ĐẶT PHÒNG
       // HÀM LỊCH SỬ ĐẶT PHÒNG
       async function openHistory() {
         const maKh = localStorage.getItem("hotel_makh");
@@ -784,7 +770,6 @@
         try {
           const token = localStorage.getItem("hotel_token");
 
-          // 1. GỌI API LẤY LỊCH SỬ
           const res = await fetch(
             `https://localhost:7182/api/DatPhong/lich-su/${maKh}`,
             {
@@ -796,7 +781,6 @@
             },
           );
 
-          // 2. BẮT LỖI TỪ BACKEND TRƯỚC KHI ÉP SANG JSON
           if (!res.ok) {
             if (res.status === 401) {
               alert("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
@@ -808,14 +792,13 @@
                 '<tr><td colspan="6" style="text-align:center; color:red; padding:20px;">Lỗi 404: Không tìm thấy đường dẫn API! (Hãy kiểm tra lại Controller C# xem có đúng là [HttpGet("lich-su/{maKh}")] không nhé)</td></tr>';
               return;
             }
-            // Các lỗi 500 khác
+
             const errorText = await res.text();
             console.error("Lỗi từ Backend:", errorText);
             historyContent.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding:20px;">Lỗi Backend Code: ${res.status}. Bấm F12 sang tab Console để xem chi tiết.</td></tr>`;
             return;
           }
 
-          // 3. NẾU THÀNH CÔNG THÌ RENDER DỮ LIỆU
           const data = await res.json();
 
           let html = "";

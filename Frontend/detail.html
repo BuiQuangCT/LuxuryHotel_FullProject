@@ -12,14 +12,13 @@
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       }
       body {
-        background-color: #f8fafc; /* Nền xám trắng cao cấp */
+        background-color: #f8fafc;
         color: #334155;
         line-height: 1.6;
       }
 
-      /* THANH ĐIỀU HƯỚNG */
       header {
-        background-color: #1a2332; /* Xanh đen đồng bộ trang quản trị */
+        background-color: #1a2332;
         color: white;
         padding: 15px 50px;
         display: flex;
@@ -33,7 +32,7 @@
       .logo {
         font-size: 24px;
         font-weight: bold;
-        color: #dfb73c; /* Vàng kim */
+        color: #dfb73c;
         letter-spacing: 2px;
         cursor: pointer;
       }
@@ -52,7 +51,6 @@
         color: #dfb73c;
       }
 
-      /* VÙNG CHỨA CHI TIẾT */
       .container {
         max-width: 1200px;
         margin: 50px auto;
@@ -65,7 +63,6 @@
         align-items: flex-start;
       }
 
-      /* Khối hiển thị hình ảnh bên trái */
       .image-gallery {
         flex: 1.5;
       }
@@ -96,7 +93,6 @@
         transform: scale(1.05);
       }
 
-      /* Khối thông tin bên phải (Card Luxury) */
       .info-card {
         flex: 1;
         background: white;
@@ -145,7 +141,7 @@
       }
       .room-price {
         font-size: 26px;
-        color: #e11d48; /* Màu đỏ sang trọng cho giá */
+        color: #e11d48;
         font-weight: 700;
         margin-top: 5px;
       }
@@ -159,7 +155,6 @@
         letter-spacing: 0.5px;
       }
 
-      /* Khu hiển thị danh sách tiện nghi tiện lợi */
       .amenities-container {
         display: flex;
         flex-wrap: wrap;
@@ -175,7 +170,6 @@
         font-weight: 500;
       }
 
-      /* NÚT ĐẶT PHÒNG HOÀNG GIA */
       .btn-luxury-book {
         width: 100%;
         background-color: #1a2332;
@@ -244,18 +238,16 @@
     </div>
 
     <script>
-      // Đọc mã phòng từ địa chỉ URL (Ví dụ: detail.html?id=HN101)
+      // Đọc mã phòng từ địa chỉ URL
       const urlParams = new URLSearchParams(window.location.search);
       const maPhong = urlParams.get("id");
-      let luuGiaPhong = 0; // Biến lưu tạm giá tiền để gửi đi API
+      let luuGiaPhong = 0;
 
       if (!maPhong) {
         alert("Không tìm thấy thông tin phòng hợp lệ!");
         window.location.href = "index.html";
       }
 
-      // TỰ ĐỘNG TẢI DỮ LIỆU CHI TIẾT TỪ BACKEND
-      // TỰ ĐỘNG TẢI DỮ LIỆU CHI TIẾT TỪ BACKEND
       async function loadDetail() {
         try {
           const res = await fetch(
@@ -264,7 +256,7 @@
           if (!res.ok) throw new Error("Lỗi tải thông tin chi tiết");
 
           const p = await res.json();
-          luuGiaPhong = p.gia; // Gán giá phòng thực tế từ dữ liệu API
+          luuGiaPhong = p.gia;
 
           // Gán dữ liệu text ra màn hình
           document.getElementById("detLoaiPhong").innerText = p.loaiPhong;
@@ -275,7 +267,6 @@
           document.getElementById("detGia").innerText =
             p.gia.toLocaleString() + " VNĐ / Đêm";
 
-          // Xử lý chuỗi tiện nghi
           const containerTienNghi = document.getElementById("detTienNghiBox");
           containerTienNghi.innerHTML = "";
           if (p.tienNghi) {
@@ -289,12 +280,9 @@
             containerTienNghi.innerHTML = `<span class="amenity-badge">Tiêu chuẩn khách sạn 5 sao</span>`;
           }
 
-          // XỬ LÝ ẢNH ĐỘNG THÔNG MINH
           if (p.anhDaiDien && p.anhDaiDien.trim() !== "") {
-            // 1. Nếu CSDL của bạn đã lưu link ảnh thật, nó sẽ ưu tiên lấy ảnh từ CSDL
             document.getElementById("mainImg").src = p.anhDaiDien;
           } else {
-            // 2. Nếu CSDL trống, tự động gán ảnh Demo xịn xò theo đúng Loại Phòng
             let tenPhong = p.loaiPhong.toLowerCase();
             let imgDemo =
               "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80"; // Ảnh Standard mặc định
@@ -322,10 +310,7 @@
         }
       }
 
-      // KẾT NỐI VỚI HÀM ĐẶT PHÒNG VÀ ĐẨY SANG VNPAY ĐỒNG BỘ TRANG CHỦ
-      // --- LOGIC PHƯƠNG ÁN 2: CHỌN MỨC THANH TOÁN TẠI TRANG CHI TIẾT ---
-
-      // 1. Hàm mở Popup khi bấm nút "TIẾN HÀNH ĐẶT PHÒNG NGAY"
+      // Hàm xử lý đóng nhanh Popup
       async function datPhongDetail() {
         const maKh = localStorage.getItem("hotel_makh");
 
@@ -335,39 +320,34 @@
           return;
         }
 
-        // Tính toán số tiền đặt cọc 30% dựa trên giá phòng lấy về từ API
+        //  đặt cọc 30%
         const tienCoc30 = Math.round(luuGiaPhong * 0.3);
 
-        // Đổ dữ liệu động lên giao diện Modal Popup
         document.getElementById("modalMaPhong").innerText = maPhong;
         document.getElementById("modalGia100").innerText =
           luuGiaPhong.toLocaleString() + " VNĐ";
         document.getElementById("modalGia30").innerText =
           tienCoc30.toLocaleString() + " VNĐ";
 
-        // Mở hiển thị giao diện Popup
         document.getElementById("paymentModal").style.display = "block";
       }
 
-      // Hàm xử lý đóng nhanh Popup
       function closePaymentModal() {
         document.getElementById("paymentModal").style.display = "none";
       }
 
-      // 2. Hàm xử lý luồng tạo đơn và liên kết VNPay theo tỷ lệ được chọn
+      // 2. luồng tạo đơn và liên kết VNPay (100% hoặc 30%)
       async function thucHienThanhToanDetail(tyLe) {
         const maKh = localStorage.getItem("hotel_makh");
 
-        // Trích xuất số tiền thực tế cần đẩy sang cổng VNPay
         const tienThanhToan = Math.round(luuGiaPhong * (tyLe / 100));
 
-        closePaymentModal(); // Đóng popup lại
+        closePaymentModal();
 
         const homNay = new Date();
         const ngayMai = new Date(homNay);
         ngayMai.setDate(homNay.getDate() + 1);
 
-        // Cấu trúc đơn hàng lưu trữ trên DB giữ nguyên 100% tổng tiền thực tế
         const requestData = {
           maKh: parseInt(maKh),
           maPhong: maPhong,
@@ -377,7 +357,6 @@
         };
 
         try {
-          // Thực hiện gọi API tạo đơn hàng tạm thời
           const response = await fetch(
             "https://localhost:7182/api/DatPhong/tao-don",
             {
@@ -396,14 +375,13 @@
               `Hệ thống khởi tạo thành công đơn số #${data.maDatPhong}.\nĐang chuyển hướng kết nối sang cổng VNPay để xử lý số tiền: ${tienThanhToan.toLocaleString()} VNĐ...`,
             );
 
-            // Gửi chính xác số tiền khách chọn (Cọc 30% hoặc Hết 100%) vào tham số tạo Link VNPay
             const urlThanhToan = `https://localhost:7182/api/ThanhToan/tao-url?maDatPhong=${data.maDatPhong}&tongTien=${tienThanhToan}`;
 
             try {
               const resPay = await fetch(urlThanhToan);
               if (resPay.ok) {
                 const payData = await resPay.json();
-                window.location.href = payData.url; // Nhảy trang sang cổng VNPay Sandbox
+                window.location.href = payData.url;
               } else {
                 alert(
                   "Lỗi hệ thống: Không thể xử lý liên kết khởi tạo cổng VNPay!",
@@ -421,7 +399,6 @@
         }
       }
 
-      // Khởi động nạp dữ liệu khi mở trang
       loadDetail();
     </script>
     <div

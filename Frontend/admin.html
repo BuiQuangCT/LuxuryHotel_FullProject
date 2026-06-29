@@ -19,7 +19,6 @@
         color: #334155;
       }
 
-      /* --- CỘT MENU BÊN TRÁI (SIDEBAR) --- */
       .sidebar {
         width: 260px;
         background-color: #1a2332;
@@ -66,7 +65,6 @@
         border-left: 4px solid #dfb73c;
       }
 
-      /* --- VÙNG NỘI DUNG CHÍNH --- */
       .main-content {
         flex: 1;
         display: flex;
@@ -74,7 +72,6 @@
         overflow: hidden;
       }
 
-      /* THANH TOPBAR */
       .topbar {
         background-color: white;
         padding: 15px 40px;
@@ -115,7 +112,6 @@
         box-shadow: 0 4px 12px rgba(241, 85, 76, 0.2);
       }
 
-      /* VÙNG CHỨA CÁC TAB NỘI DUNG */
       .content-body {
         padding: 40px;
         flex: 1;
@@ -139,7 +135,6 @@
         }
       }
 
-      /* DASHBOARD STATS */
       .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -171,7 +166,6 @@
         color: #1e293b;
       }
 
-      /* TABLES */
       .table-container {
         background: white;
         border-radius: 12px;
@@ -205,7 +199,6 @@
         background-color: #f8fafc;
       }
 
-      /* BADGES */
       .status-badge {
         padding: 5px 12px;
         border-radius: 20px;
@@ -226,7 +219,6 @@
         color: #991b1b;
       }
 
-      /* BUTTONS */
       .btn-action {
         padding: 6px 14px;
         border: none;
@@ -253,7 +245,6 @@
         box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
       }
 
-      /* FILTER BAR */
       .filter-bar {
         display: flex;
         gap: 15px;
@@ -449,10 +440,9 @@
         const thangSelect = document.getElementById("thongKeThang");
         const namSelect = document.getElementById("thongKeNam");
         const now = new Date();
-        const currentMonth = now.getMonth() + 1; // JS months are 0-11
+        const currentMonth = now.getMonth() + 1;
         const currentYear = now.getFullYear();
 
-        // Tạo các lựa chọn cho tháng
         let monthOptions = "";
         for (let i = 1; i <= 12; i++) {
           monthOptions += `<option value="${i}" ${
@@ -461,7 +451,6 @@
         }
         thangSelect.innerHTML = monthOptions;
 
-        // Tạo các lựa chọn cho năm (ví dụ: 3 năm gần nhất + năm hiện tại)
         let yearOptions = "";
         for (let i = currentYear; i >= currentYear - 3; i--) {
           yearOptions += `<option value="${i}" ${
@@ -471,7 +460,6 @@
         namSelect.innerHTML = yearOptions;
       }
 
-      // Thiết lập bộ lọc và tải dữ liệu lần đầu
       setupDashboardFilters();
       loadDashboard();
 
@@ -505,12 +493,11 @@
         if (tabId === "customers") loadCustomers();
       }
 
-      // 1. API THỐNG KÊ DOANH THU & ĐƠN HÀNG GẦN ĐÂY
+      // 1. API TKÊ DOANH THU & ĐƠN HÀNG GẦN
       async function loadDashboard() {
         const m = document.getElementById("thongKeThang").value;
         const y = document.getElementById("thongKeNam").value;
 
-        // Hiển thị trạng thái đang tải
         document.getElementById("txtDoanhThu").innerText = "Đang tải...";
         document.getElementById("txtTongDon").innerText = "Đang tải...";
         const recentBookingsBody = document.getElementById("bangDonHangGanDay");
@@ -518,7 +505,6 @@
           '<tr><td colspan="5" style="text-align:center; padding: 20px;">Đang tải...</td></tr>';
 
         try {
-          // Gọi đồng thời API thống kê và API danh sách đơn hàng
           const [statsRes, bookingsRes] = await Promise.all([
             fetch(`${API_BASE_URL}/thong-ke-doanh-thu?thang=${m}&nam=${y}`, {
               headers: myHeaders,
@@ -526,20 +512,17 @@
             }),
             fetch(`${API_BASE_URL}/danh-sach-dat-phong`, {
               headers: myHeaders,
-              // Thêm cache: 'no-cache' để đảm bảo dữ liệu luôn mới nhất
-              // và không bị trình duyệt lưu trữ phiên bản cũ.
+
               cache: "no-cache",
             }),
           ]);
 
-          // Xử lý lỗi phân quyền (nếu có)
           if (statsRes.status === 403 || statsRes.status === 401) {
             alert("Tài khoản của bạn không được phân quyền Admin!");
             window.location.href = "index.html";
             return;
           }
 
-          // Xử lý kết quả thống kê
           if (statsRes.ok) {
             const data = await statsRes.json();
             document.getElementById("txtDoanhThu").innerText =
@@ -551,11 +534,10 @@
             document.getElementById("txtTongDon").innerText = "Lỗi tải";
           }
 
-          // Xử lý kết quả danh sách đơn hàng gần đây
           if (bookingsRes.ok) {
             const bookingsData = await bookingsRes.json();
             let html = "";
-            const recentBookings = bookingsData.slice(0, 5); // Lấy 5 đơn mới nhất
+            const recentBookings = bookingsData.slice(0, 5);
 
             if (recentBookings.length === 0) {
               html =
@@ -565,7 +547,7 @@
                 let badgeClass = "status-pending";
                 let trangThaiDisplay = b.trangThai;
                 if (trangThaiDisplay === "Ðã h?y")
-                  trangThaiDisplay = "\u0110\u00e3 h\u1ee7y"; // Sửa lỗi hiển thị
+                  trangThaiDisplay = "\u0110\u00e3 h\u1ee7y";
 
                 if (b.trangThai === "Success" || b.trangThai === "Đã đặt cọc") {
                   badgeClass = "status-success";
@@ -596,9 +578,9 @@
         }
       }
 
-      let allBookings = []; // To store all bookings for client-side filtering
+      let allBookings = [];
 
-      // 2. API QUẢN LÝ ĐƠN HÀNG
+      // 2. API QLÝ ĐƠN HÀNG
       async function loadBookings() {
         try {
           const res = await fetch(`${API_BASE_URL}/danh-sach-dat-phong`, {
@@ -606,7 +588,7 @@
             cache: "no-cache",
           });
           allBookings = await res.json();
-          renderBookings(allBookings); // Render all bookings initially
+          renderBookings(allBookings);
         } catch (e) {
           console.error(e);
           document.getElementById("bangDonHang").innerHTML =
@@ -630,7 +612,7 @@
             (b.soDienThoai && b.soDienThoai.includes(searchTerm));
 
           let statusMatch = statusFilter === "" || b.trangThai === statusFilter;
-          // Handle inconsistent "Đã hủy" statuses from DB
+
           if (statusFilter === "Đã hủy") {
             statusMatch = b.trangThai === "Đã hủy" || b.trangThai === "Ðã h?y";
           }
@@ -653,7 +635,6 @@
           let badgeClass = "status-pending";
           let trangThaiDisplay = b.trangThai;
 
-          // Handle encoding issues and map statuses to colors
           if (trangThaiDisplay === "Ðã h?y") trangThaiDisplay = "Đã hủy";
           if (b.trangThai === "Success" || b.trangThai === "Đã đặt cọc") {
             badgeClass = "status-success";
@@ -699,9 +680,9 @@
 
           if (res.ok) {
             showToast("Duyệt đơn thành công!");
-            loadBookings(); // Tự động load lại bảng
+            loadBookings();
           } else {
-            // Bắt lỗi Token hoặc phân quyền
+            // Khi phien dang nhap het han hoac khong co quyen admin
             if (res.status === 401 || res.status === 403) {
               alert(
                 "Phiên đăng nhập đã hết hạn hoặc bạn không có quyền Admin. Vui lòng đăng nhập lại!",
@@ -710,7 +691,6 @@
               return;
             }
 
-            // Đọc lỗi dạng chữ thay vì JSON để tránh crash
             const errorText = await res.text();
             console.error("Chi tiết lỗi từ C#:", errorText);
             showToast(
@@ -735,7 +715,7 @@
 
           if (res.ok) {
             showToast("Hủy đơn thành công!");
-            loadBookings(); // Tự động load lại bảng
+            loadBookings();
           } else {
             if (res.status === 401 || res.status === 403) {
               alert(
@@ -757,7 +737,7 @@
           showToast("Lỗi kết nối máy chủ!", true);
         }
       }
-      // 3. API QUẢN LÝ PHÒNG
+      // 3. API QLÝ PHÒNG
       async function loadRooms() {
         try {
           const res = await fetch(`${API_BASE_URL}/danh-sach-phong`, {
@@ -833,7 +813,6 @@
           },
         );
         if (res.ok) {
-          // Instead of a full reload, just update the UI for this row
           const saveBtn = document.getElementById(`save-btn-${maPhong}`);
           saveBtn.disabled = true;
 
@@ -842,15 +821,13 @@
           );
           statusLabel.textContent = trangThaiMoi;
 
-          // Update class for color
-          statusLabel.className = "status-badge"; // reset classes
+          statusLabel.className = "status-badge";
           let badgeClass = "status-pending";
           if (trangThaiMoi === "Sẵn sàng" || trangThaiMoi === "Trống")
             badgeClass = "status-success";
           if (trangThaiMoi === "Bảo trì") badgeClass = "status-danger";
           statusLabel.classList.add(badgeClass);
 
-          // Update the "currentStatus" for the onchange event
           select.setAttribute(
             "onchange",
             `checkTrangThaiPhongChanged('${maPhong}', '${trangThaiMoi}')`,
@@ -863,7 +840,6 @@
         }
       }
 
-      // Simple Toast Notification System
       function showToast(message, isError = false) {
         let toast = document.getElementById("toast-notification");
         if (!toast) {
@@ -896,7 +872,7 @@
         }, 3000);
       }
 
-      // 4. API QUẢN LÝ KHÁCH HÀNG
+      // 4. API QLÝ KHÁCH HÀNG
       async function loadCustomers() {
         try {
           const res = await fetch(`${API_BASE_URL}/danh-sach-khach-hang`, {
