@@ -70,7 +70,7 @@ namespace lxrhotel.API.Tests
 
             var controller = new ThanhToanController(context, _mockEmailService.Object);
 
-            // Mock VNPay response
+           
             var queryParams = new Dictionary<string, string>
             {
                 {"vnp_ResponseCode", "00"},
@@ -83,24 +83,18 @@ namespace lxrhotel.API.Tests
             {
                 vnpay.AddResponseData(key, value);
             }
-            // Use a stable method to create the hash
+           
             var sortedParams = queryParams.OrderBy(p => p.Key, new VnPayCompare());
             var hashData = string.Join("&", sortedParams.Select(p => $"{p.Key}={p.Value}"));
-            // This is not how VNPay calculates hash, but for the test this is enough to have a predictable hash.
-            // The controller logic uses ValidateSignature which is what we are testing, not the hash creation.
-            // In a real scenario, you'd want to replicate VNPay's hash logic if you were testing the hash creation itself.
-            string secureHash = Guid.NewGuid().ToString(); // A mock hash
+           
+            string secureHash = Guid.NewGuid().ToString();
             vnpay.AddResponseData("vnp_SecureHash", secureHash);
             queryParams["vnp_SecureHash"] = secureHash;
 
 
             var mockVnPayLibrary = new Mock<VnPayLibrary>();
             var httpContext = CreateMockHttpContext(queryParams);
-            // Since we can't easily mock the VnPayLibrary used inside the controller, 
-            // we will have to rely on the fact that with the correct data, it will work.
-            // The alternative is to refactor the controller to inject IVnPayLibrary.
-            // For now, let's assume checkSignature will be true with a valid-looking setup.
-            // Let's create a valid hash
+           
             var vnpayLibForHash = new VnPayLibrary();
             vnpayLibForHash.AddRequestData("vnp_ResponseCode", "00");
             vnpayLibForHash.AddRequestData("vnp_TxnRef", "12345");

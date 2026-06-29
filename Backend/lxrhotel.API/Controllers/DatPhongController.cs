@@ -51,7 +51,7 @@ namespace lxrhotel.API.Controllers
 
         }
        
-        // UC09: LẤY LỊCH SỬ ĐẶT PHÒNG CỦA KHÁCH
+        
         
         [HttpGet("lich-su/{maKh}")]
         public async Task<IActionResult> GetLichSu(int maKh)
@@ -73,7 +73,7 @@ namespace lxrhotel.API.Controllers
         }
 
        
-        // UC10: HỦY ĐẶT PHÒNG
+      
         
         [HttpPut("huy-don/{maDatPhong}")]
         public async Task<IActionResult> HuyDon(int maDatPhong)
@@ -81,12 +81,11 @@ namespace lxrhotel.API.Controllers
             var don = await _context.DatPhongs.FindAsync(maDatPhong);
             if (don == null) return NotFound("Không tìm thấy đơn hàng.");
 
-            // Chỉ cho phép hủy đơn đang ở trạng thái "Pending"
-            // Chuẩn hóa việc kiểm tra trạng thái để tránh lỗi encoding
+           
             if (don.TrangThai != "Pending")
                 return BadRequest("Không thể hủy đơn hàng ở trạng thái này.");
 
-            don.TrangThai = "Đã hủy"; // Chuẩn hóa trạng thái
+            don.TrangThai = "Đã hủy";
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Đã hủy đơn đặt phòng thành công." });

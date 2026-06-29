@@ -16,7 +16,7 @@ namespace lxrhotel.API.Controllers
         }
 
       
-        // API 1: LẤY DANH SÁCH ĐỊA ĐIỂM
+       
         
         [HttpGet("dia-diem")]
         public async Task<IActionResult> GetDanhSachDiaDiem()
@@ -29,7 +29,7 @@ namespace lxrhotel.API.Controllers
             return Ok(danhSachDiaDiem);
         }
 
-        // API 2: TÌM KIẾM PHÒNG TRỐNG
+       
         
         [HttpGet("tim-kiem")]
         public async Task<IActionResult> TimKiemPhong(string diaDiem, DateTime ngayNhan, DateTime ngayTra, int soNguoi)
@@ -78,7 +78,7 @@ namespace lxrhotel.API.Controllers
             return Ok(ketQua);
         }
         
-        // API 3: LẤY CHI TIẾT 1 PHÒNG
+        
       
         [HttpGet("{maPhong}")]
         public async Task<IActionResult> GetChiTietPhong(string maPhong)

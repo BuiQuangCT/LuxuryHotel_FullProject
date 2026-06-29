@@ -18,12 +18,11 @@ namespace lxrhotel.API.Tests
 
         public KhachHangControllerTests()
         {
-            // 1. Setup In-Memory Database
+           
             _dbOptions = new DbContextOptionsBuilder<LuxuryHotelContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            // 2. Mock IConfiguration để cung cấp các giá trị giả cho JWT
             var inMemorySettings = new Dictionary<string, string> {
                 {"Jwt:Key", "LXR_Hotel_Super_Secret_Key_At_Least_32_Chars_Long_2026!!!"},
                 {"Jwt:Issuer", "TestIssuer"},
@@ -34,7 +33,7 @@ namespace lxrhotel.API.Tests
                 .AddInMemoryCollection(inMemorySettings)
                 .Build();
 
-            // 3. Mock Email Service
+           
             _mockEmailService = new Mock<IEmailService>();
         }
 
